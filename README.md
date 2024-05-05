@@ -8,6 +8,7 @@ Raspberry Pi 5とオムニホイールを使ったマイクロマウスを制作
 
 1. [Raspberry Pi 5をヘッドレスでセットアップ](docs/raspberry_pi_5_os_setup.md)
 2. [ROS2(Jazzy Jalisco)をインストール](docs/ros2_setup.md)
+3. [Raspberry Pi 5をバッテリーで稼働させる](docs/running_raspberry_pi_5_on_battery.md)
 
 ## Setup(セットアップ)
 

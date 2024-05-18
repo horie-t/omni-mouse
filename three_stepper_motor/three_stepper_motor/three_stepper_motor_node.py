@@ -5,30 +5,38 @@ import time
 
 
 class MotorDriveNode(Node):
+    motor_num = 3
+
     def __init__(self):
         print('Generate Node')
         super().__init__('motor_drive_node')
-        self.ce_num = 0
-        spi = self.openMotor(self.ce_num)
-        self.initializeMotor(spi)
-        spi.close()
 
-        self.timer = self.create_timer(10, self.timer_callback)
+        for ce_num in range(MotorDriveNode.motor_num):
+            spi = self.openMotor(ce_num)
+            self.initializeMotor(spi)
+            self.closeMotor(spi)
+
+        self.ce_num = 0
+
+        self.timer = self.create_timer(5, self.timer_callback)
 
     def timer_callback(self):
         spi = self.openMotor(self.ce_num)
+
+        print('Rolling')
         spi.xfer([0x50])
         spi.xfer([0x00])
         spi.xfer([0x20])
         spi.xfer([0x00])
 
-        print('Rolling')
-
         time.sleep(3)
 
-        spi.xfer([0xB8])
         print('Stopping')
-        spi.close()
+        spi.xfer([0xB8])
+
+        self.closeMotor(spi)
+
+        self.ce_num = (self.ce_num + 1) % MotorDriveNode.motor_num
 
         return
 
@@ -46,6 +54,11 @@ class MotorDriveNode(Node):
         spi.threewire = False
 
         return spi
+    
+    def closeMotor(self, spi):
+        spi.close()
+
+        return
 
     def initializeMotor(self, spi):
         print('Initializing')
@@ -53,8 +66,6 @@ class MotorDriveNode(Node):
         spi.xfer([0x00])
         spi.xfer([0x00])
         spi.xfer([0x00])
-
-        #spi.xfer([0x70])
 
         spi.xfer([0x07])
         spi.xfer([0x20])
@@ -76,11 +87,24 @@ class MotorDriveNode(Node):
 
         return
 
+    def shutdown(self):
+        print("Shutdown")
+        for ce_num in range(MotorDriveNode.motor_num):
+            spi = self.openMotor(ce_num)
+            spi.xfer([0xB8])
+            self.closeMotor(spi)
+
+        return
+
+
 def main():
     print('Start program')
     rclpy.init()
     node = MotorDriveNode()
-    rclpy.spin(node)
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        node.shutdown()
     rclpy.shutdown
     print('Finish program')
 

@@ -36,9 +36,10 @@ def main():
     motor2.setRegister(StRegister.Dec, 0x10)
     motor2.setRegister(StRegister.Acc, 0x20)
 
-    motor0.move(steps=54000)
-    motor1.move(steps=54000)
-    motor2.move(steps=54000)
+    #motor0.move(steps=54000)
+    motor1.setDirection(StConstant.DirReverse)
+    motor1.move(steps=10000)
+    motor2.move(steps=10000)
 
     time.sleep(10)
 

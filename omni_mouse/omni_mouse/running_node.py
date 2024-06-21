@@ -18,9 +18,27 @@ def main():
     motor1 = st_chain1.create(0)
     motor2 = st_chain2.create(0)
 
-    motor0.run(200)
-    motor1.run(200)
-    motor2.run(200)
+    motor0.setRegister(StRegister.SpeedMax, 0x05)
+    motor1.setRegister(StRegister.SpeedMax, 0x05)
+    motor2.setRegister(StRegister.SpeedMax, 0x05)
+
+    motor0.setRegister(StRegister.SpeedMin, 0x05)
+    motor1.setRegister(StRegister.SpeedMin, 0x05)
+    motor2.setRegister(StRegister.SpeedMin, 0x05)
+
+    motor0.setRegister(StRegister.Acc, 0x5)
+    motor0.setRegister(StRegister.Dec, 0x10)
+    motor0.setRegister(StRegister.Acc, 0x20)
+    motor1.setRegister(StRegister.Acc, 0x5)
+    motor1.setRegister(StRegister.Dec, 0x10)
+    motor1.setRegister(StRegister.Acc, 0x20)
+    motor2.setRegister(StRegister.Acc, 0x5)
+    motor2.setRegister(StRegister.Dec, 0x10)
+    motor2.setRegister(StRegister.Acc, 0x20)
+
+    motor0.move(steps=54000)
+    motor1.move(steps=54000)
+    motor2.move(steps=54000)
 
     time.sleep(10)
 

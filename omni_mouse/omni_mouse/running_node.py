@@ -1,4 +1,11 @@
 import time
+from math import cos, pi, sin
+import numpy as np
+
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import Twist
+
 from stspin import (
     SpinChain,
     SpinDevice,
@@ -7,47 +14,51 @@ from stspin import (
     utility,
 )
 
+wheel_radius = 0.024
+shaft_length = 0.05
+rotate_mat = (1 / wheel_radius) *np.array([
+    [cos(  pi      - pi / 2), sin(  pi      - pi / 2), - shaft_length],
+    [cos(  pi / 3  - pi / 2), sin(  pi / 3  - pi / 2), - shaft_length],
+    [cos(-(pi / 3) - pi / 2), sin(-(pi / 3) - pi / 2), - shaft_length]
+])
+
+def calc_speed_of_wheels(vec):
+    return np.dot(rotate_mat, vec)
+
+class RunningNode(Node):
+    def __init__(self):
+        print('Generate Node')
+        super().__init__('running_node')
+        self.speed = 0
+        self.motors = []
+        for i in range(3):
+            st_chain = SpinChain(total_devices=1, spi_select=(1, i))
+            motor = st_chain.create(0)
+            self.motors.append(motor)
+        self.subscription = self.create_subscription(Twist, '/cmd_vel', self.listener_callback, 10)
+
+    def listener_callback(self, cmd_vel):
+        print(cmd_vel)
+        self.run(cmd_vel)
+
+    def run(self, cmd_vel):
+        speeds = calc_speed_of_wheels(np.array([cmd_vel.linear.x, cmd_vel.linear.y, cmd_vel.angular.z * 20]))
+        print(speeds)
+        for speed, motor in zip(speeds, self.motors):
+            if speed >= 0:
+                motor.setDirection(StConstant.DirReverse)
+                motor.run(speed)
+            else:
+                motor.setDirection(StConstant.DirForward)
+                motor.run(-speed)
+
 def main():
-    print('Hi from omni_mouse.')
-
-    st_chain0 = SpinChain(total_devices=1, spi_select=(1, 0))
-    st_chain1 = SpinChain(total_devices=1, spi_select=(1, 1))
-    st_chain2 = SpinChain(total_devices=1, spi_select=(1, 2))
-
-    motor0 = st_chain0.create(0)
-    motor1 = st_chain1.create(0)
-    motor2 = st_chain2.create(0)
-
-    motor0.setRegister(StRegister.SpeedMax, 0x05)
-    motor1.setRegister(StRegister.SpeedMax, 0x05)
-    motor2.setRegister(StRegister.SpeedMax, 0x05)
-
-    motor0.setRegister(StRegister.SpeedMin, 0x05)
-    motor1.setRegister(StRegister.SpeedMin, 0x05)
-    motor2.setRegister(StRegister.SpeedMin, 0x05)
-
-    motor0.setRegister(StRegister.Acc, 0x5)
-    motor0.setRegister(StRegister.Dec, 0x10)
-    motor0.setRegister(StRegister.Acc, 0x20)
-    motor1.setRegister(StRegister.Acc, 0x5)
-    motor1.setRegister(StRegister.Dec, 0x10)
-    motor1.setRegister(StRegister.Acc, 0x20)
-    motor2.setRegister(StRegister.Acc, 0x5)
-    motor2.setRegister(StRegister.Dec, 0x10)
-    motor2.setRegister(StRegister.Acc, 0x20)
-
-    #motor0.move(steps=54000)
-    motor1.setDirection(StConstant.DirReverse)
-    motor1.move(steps=10000)
-    motor2.move(steps=10000)
-
-    time.sleep(10)
-
-    motor0.stopSoft()
-    motor1.stopSoft()
-    motor2.stopSoft()
-
-    print('Bye from omni_mouse.')
+    print('Start program')
+    rclpy.init()
+    node = RunningNode()
+    rclpy.spin(node)
+    rclpy.shutdown
+    print('Finish program')
 
 if __name__ == '__main__':
     main()

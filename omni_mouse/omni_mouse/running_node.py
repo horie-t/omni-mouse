@@ -18,8 +18,8 @@ wheel_radius = 0.024
 shaft_length = 0.05
 rotate_mat = (1 / wheel_radius) *np.array([
     [cos(  pi      - pi / 2), sin(  pi      - pi / 2), - shaft_length],
-    [cos(-(pi / 3) - pi / 2), sin(-(pi / 3) - pi / 2), - shaft_length],
-    [cos(  pi / 3  - pi / 2), sin(  pi / 3  - pi / 2), - shaft_length]
+    [cos(  pi / 3  - pi / 2), sin(  pi / 3  - pi / 2), - shaft_length],
+    [cos(-(pi / 3) - pi / 2), sin(-(pi / 3) - pi / 2), - shaft_length]
 ])
 
 def calc_speed_of_wheels(vec):
@@ -42,14 +42,14 @@ class RunningNode(Node):
         self.run(cmd_vel)
 
     def run(self, cmd_vel):
-        speeds = calc_speed_of_wheels(np.array([cmd_vel.linear.x, - cmd_vel.linear.y, - cmd_vel.angular.z * 20]))
+        speeds = calc_speed_of_wheels(np.array([cmd_vel.linear.x, cmd_vel.linear.y, cmd_vel.angular.z * 20]))
         print(speeds)
         for speed, motor in zip(speeds, self.motors):
             if speed >= 0:
-                motor.setDirection(StConstant.DirForward)
+                motor.setDirection(StConstant.DirReverse)
                 motor.run(speed)
             else:
-                motor.setDirection(StConstant.DirReverse)
+                motor.setDirection(StConstant.DirForward)
                 motor.run(-speed)
 
 def main():

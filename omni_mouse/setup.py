@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'running_node = omni_mouse.running_node:main'
+            'running_node = omni_mouse.running_node:main',
+            'camera_node = omni_mouse.camera_node:main'
         ],
     },
 )

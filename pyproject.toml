@@ -4,9 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-    "reactivex>=4.0.4",
-]
+dependencies = []
 
 [project.scripts]
 omni-mouse = "omni_mouse:main"

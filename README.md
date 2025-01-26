@@ -14,9 +14,39 @@ Raspberry Pi 5とオムニホイールを使ったマイクロマウスを制作
 
 3Dプリンタで [hardware](./hardware/) ディレクトリの `.stl` ファイルを使って3Dプリンティングしてください。
 
+## 電装系
+
+[こちら](./electrical_system/OmniMouse_Circuit.png) のように各種部品を接続してください。回路図は[Fritzing](https://fritzing.org/)を使用して書いています。
+
+## Raspberry Pi 5 セットアップ
+
+#### OSのインストール
+
+[Raspberry Pi 5をヘッドレスでセットアップ](docs/raspberry_pi_5_os_setup.md)を参照してください。
+
+#### EEPROMの設定変更
+
+起動後に以下の警告が表示されます。
+
+> This power supply is not capable of supplying 5A
+> 
+> Power to peripherals will be restricted
+
+以下のコマンドを実行して、電源の電流供給能力が5Aあるとみなすようにさせます。
+
+```
+sudo rpi-eeprom-config -e
+```
+
+コマンドの編集画面で以下の行を追加します。
+
+```
+PSU_MAX_CURRENT=5000
+```
+
 ## ソフトウェア実行環境構築
 
-1. このリポジトリを `git clone` してください。  
+1. Raspberry Pi上で、このリポジトリを `git clone` してください。  
     ```bash
     git@github.com:horie-t/omni-mouse.git
     cd omni-mouse
@@ -52,7 +82,8 @@ uv run python src/omni_mouse/experiment/keyinput.py
 
 ```
 .
-├── docs         # 説明用の文書
-├── hardware     # ハードウェア設計データ
-└── src          # ソースコード
+├── docs                # 説明用の文書
+├── electrical_system   # 電装系設計データ
+├── hardware            # ハードウェア設計データ
+└── src                 # ソースコード
 ```

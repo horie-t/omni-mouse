@@ -44,6 +44,26 @@ sudo rpi-eeprom-config -e
 PSU_MAX_CURRENT=5000
 ```
 
+#### SPI1デバイスの有効化
+
+`/boot/firmware/config.txt` ファイルを編集します。
+
+```bash
+sudo vi /boot/firmware/config.txt
+```
+
+`dtparam=spi=on` をアンコメントして、SPI1の定義を追加します。
+
+```txt
+# 前略
+# 以下をアンコメントします。
+dtparam=spi=on
+# 中略
+# 最後を以下のようにします。
+[all]
+dtoverlay=spi1-3cs,cs1_pin=27
+```
+
 ## ソフトウェア実行環境構築
 
 1. Raspberry Pi上で、このリポジトリを `git clone` してください。  

@@ -595,10 +595,14 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "ray", extra = ["default"] },
+    { name = "st-spin", extra = ["spidev"] },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "ray", extras = ["default"], specifier = ">=2.41.0" }]
+requires-dist = [
+    { name = "ray", extras = ["default"], specifier = ">=2.41.0" },
+    { name = "st-spin", extras = ["spidev"], specifier = ">=0.0.22.4" },
+]
 
 [[package]]
 name = "opencensus"
@@ -1126,6 +1130,29 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/21/30/1f41c3d3b8cec82024b4b277bfd4e5b18b765ae7279eb9871fa25c503778/smart_open-7.1.0.tar.gz", hash = "sha256:a4f09f84f0f6d3637c6543aca7b5487438877a21360e7368ccf1f704789752ba", size = 72044 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7a/18/9a8d9f01957aa1f8bbc5676d54c2e33102d247e146c1a3679d3bd5cc2e3a/smart_open-7.1.0-py3-none-any.whl", hash = "sha256:4b8489bb6058196258bafe901730c7db0dcf4f083f316e97269c66f45502055b", size = 61746 },
+]
+
+[[package]]
+name = "spidev"
+version = "3.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fb/14/4c2e1640f0cb04862c76d9d76ed7c945b0f67876e503ac02f7f675fe86a0/spidev-3.4.tar.gz", hash = "sha256:4314e52f573d95233c907f307558893313a8a606e197e77bb711526b0e179e80", size = 10222 }
+
+[[package]]
+name = "st-spin"
+version = "0.0.22.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d3/e2/56cff23150a354dc2888b91c9bc85166f5378119004368b48857052a205b/st_spin-0.0.22.4.tar.gz", hash = "sha256:696373d6ab5a3df8f6859ae84ef53784d233483e0a235073ac53ded9d0106faf", size = 11211 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/29/18/5e362088084d293589ce3ab45ea3d1079523fde3fc17606a764b1810d0f8/st_spin-0.0.22.4-py3-none-any.whl", hash = "sha256:ea4763b288c8e2f1614c5117830b1aadfae558858a44252115b33163b1bd2ccd", size = 13377 },
+]
+
+[package.optional-dependencies]
+spidev = [
+    { name = "spidev" },
 ]
 
 [[package]]

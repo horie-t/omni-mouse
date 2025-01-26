@@ -8,7 +8,13 @@ Raspberry Pi 5とオムニホイールを使ったマイクロマウスを制作
 
 1. [Raspberry Pi 5をヘッドレスでセットアップ](docs/raspberry_pi_5_os_setup.md)
 
-## 環境構築
+## ハードウェア制作
+
+ハードウェアの設計は[FreeCAD](https://www.freecad.org/index.php?lang=ja)で行っています。設計データは[hardware](./hardware/) ディレクトリの `.FCStd` ファイルです。
+
+3Dプリンタで [hardware](./hardware/) ディレクトリの `.stl` ファイルを使って3Dプリンティングしてください。
+
+## ソフトウェア実行環境構築
 
 1. このリポジトリを `git clone` してください。  
     ```bash
@@ -26,7 +32,7 @@ Raspberry Pi 5とオムニホイールを使ったマイクロマウスを制作
 
 ## 実行
 
-まだ、Rayのサンプルプログラムが起動するだけ
+まだ、Rayのサンプルプログラムが起動するだけです。
 
 ```bash
 uv rum -m omni-mouse
@@ -38,4 +44,15 @@ uv rum -m omni-mouse
 
 ```bash
 uv run python src/omni_mouse/experiment/keyinput.py
+```
+
+## ディレクトリ構成
+
+主なディレクトリ
+
+```
+.
+├── docs         # 説明用の文書
+├── hardware     # ハードウェア設計データ
+└── src          # ソースコード
 ```

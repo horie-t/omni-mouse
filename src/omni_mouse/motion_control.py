@@ -9,11 +9,12 @@ from stspin import (
     utility,
 )
 
-from omni_mouse.model import Twist
+from omni_mouse.model import Twist, Vector3
 
 @ray.remote
-class MotionControllActor:
+class MotionControlActor:
     def __init__(self, wheel_radius: float = 0.024, shaft_length: float = 0.05):
+        self.velocity = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
         self.wheel_radius = wheel_radius
         self.shaft_length = shaft_length
         self.rotate_mat = (1 / wheel_radius) * np.array([
@@ -42,6 +43,9 @@ class MotionControllActor:
     def stop(self):
         for motor in self.motors:
             motor.hiZHard()
+
+    def velocity(self):
+        return self.velocity
 
     def _calc_speed_of_wheels(self, vec):
         return np.dot(self.rotate_mat, vec)

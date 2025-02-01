@@ -1,3 +1,4 @@
+import asyncio
 import curses
 from math import cos, pi, sin
 import numpy as np
@@ -26,15 +27,19 @@ class MotionControlActor:
         ])
 
         self.motors = []
-        self.positions = []
-        self.position_subscribers = []
         for i in range(3):
             st_chain = SpinChain(total_devices=1, spi_select=(1, i))
             motor = st_chain.create(0)
             self.motors.append(motor)
-            self.positions.append(motor.getRegister(StRegister.PosAbs))
+
+        self.running = False  
+        self.positions = self._get_positions()
+        self.position_subscribers = []
 
     def run(self, velocity: Twist):
+        if not self.running:
+            asyncio.create_task(self._odometry())
+        self.running = True
         speeds = self._calc_speed_of_wheels(np.array([velocity.linear.x, velocity.linear.y, velocity.angular.z * 20]))
         for speed, motor in zip(speeds, self.motors):
             if speed >= 0:
@@ -45,11 +50,25 @@ class MotionControlActor:
                 motor.run(-speed)
 
     def stop(self):
+        self.running = False
         for motor in self.motors:
             motor.hiZHard()
 
     def velocity(self):
         return self.velocity
+
+    async def _odometry(self):
+        while self.running:
+            new_positions = self._get_positions()
+            print(new_positions)
+            self.positions = new_positions
+            try:
+                await asyncio.sleep(3)
+            except asyncio.CancelledError:
+                break
+
+    def _get_positions(self):
+        return np.array([self.motors[i].getRegister(StRegister.PosAbs) for i in range(3)])
 
     def _calc_speed_of_wheels(self, vec):
         return np.dot(self.rotate_mat, vec)

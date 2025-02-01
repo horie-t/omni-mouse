@@ -26,14 +26,16 @@ class MotionControlActor:
         ])
 
         self.motors = []
+        self.positions = []
+        self.position_subscribers = []
         for i in range(3):
             st_chain = SpinChain(total_devices=1, spi_select=(1, i))
             motor = st_chain.create(0)
             self.motors.append(motor)
+            self.positions.append(motor.getRegister(StRegister.PosAbs))
 
     def run(self, velocity: Twist):
         speeds = self._calc_speed_of_wheels(np.array([velocity.linear.x, velocity.linear.y, velocity.angular.z * 20]))
-        print(speeds)
         for speed, motor in zip(speeds, self.motors):
             if speed >= 0:
                 motor.setDirection(StConstant.DirReverse)

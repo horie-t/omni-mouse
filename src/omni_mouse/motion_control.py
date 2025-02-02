@@ -40,7 +40,7 @@ class MotionControlActor:
         if not self.running:
             asyncio.create_task(self._odometry())
         self.running = True
-        speeds = self._calc_speed_of_wheels(np.array([velocity.linear.x, velocity.linear.y, velocity.angular.z * 20]))
+        speeds = self._calc_speed_of_wheels(np.array([velocity.linear.x, velocity.linear.y, velocity.angular.z]))
         for speed, motor in zip(speeds, self.motors):
             if speed >= 0:
                 motor.setDirection(StConstant.DirReverse)
@@ -88,11 +88,12 @@ class Console:
                 self.actor.stop.remote()
                 break
             elif key == curses.KEY_LEFT:
+                # 旋回は20にしないと遅い。
                 stdscr.addstr(f"Key pressed: ←\n")
-                velocity.angular.z = 1
+                velocity.angular.z = 20
             elif key == curses.KEY_RIGHT:
                 stdscr.addstr(f"Key pressed: →\n")
-                velocity.angular.z = -1
+                velocity.angular.z = -20
             elif key == ord('w'):
                 stdscr.addstr(f"Key pressed: w\n")
                 velocity.linear.x = 1

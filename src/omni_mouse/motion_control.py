@@ -16,11 +16,12 @@ from omni_mouse.model import Twist, Vector3
 
 @ray.remote
 class MotionControlActor:
-    def __init__(self, wheel_radius: float = 0.024, shaft_length: float = 0.05):
+    def __init__(self, wheel_radius: float = 0.024, shaft_length: float = 0.05, steps_per_revolution: int = 200, micro_steps: int = 128):
         self.velocity = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
         self.wheel_radius = wheel_radius
         self.shaft_length = shaft_length
-        self.rotate_mat = (1 / wheel_radius) * np.array([
+        # SPS: Steps Per Secondを計算するための行列
+        self.sps_mat = (steps_per_revolution * micro_steps / (2 * pi)) * (1 / wheel_radius) * np.array([
             [cos(  pi      - pi / 2), sin(  pi      - pi / 2), - shaft_length],
             [cos(  pi / 3  - pi / 2), sin(  pi / 3  - pi / 2), - shaft_length],
             [cos(-(pi / 3) - pi / 2), sin(-(pi / 3) - pi / 2), - shaft_length]
@@ -40,14 +41,14 @@ class MotionControlActor:
         if not self.running:
             asyncio.create_task(self._odometry())
         self.running = True
-        speeds = self._calc_speed_of_wheels(np.array([velocity.linear.x, velocity.linear.y, velocity.angular.z]))
-        for speed, motor in zip(speeds, self.motors):
-            if speed >= 0:
+        steps_per_second_list = self._calc_steps_per_second_of_wheels(np.array([velocity.linear.x, velocity.linear.y, velocity.angular.z]))
+        for steps_per_second, motor in zip(steps_per_second_list, self.motors):
+            if steps_per_second >= 0:
                 motor.setDirection(StConstant.DirReverse)
-                motor.run(speed)
+                motor.run(steps_per_second)
             else:
                 motor.setDirection(StConstant.DirForward)
-                motor.run(-speed)
+                motor.run(-steps_per_second)
 
     def stop(self):
         self.running = False
@@ -70,8 +71,8 @@ class MotionControlActor:
     def _get_positions(self):
         return np.array([self.motors[i].getRegister(StRegister.PosAbs) for i in range(3)])
 
-    def _calc_speed_of_wheels(self, vec):
-        return np.dot(self.rotate_mat, vec)
+    def _calc_steps_per_second_of_wheels(self, vec):
+        return np.dot(self.sps_mat, vec)
 
 class Console:
     def __init__(self, actor: MotionControlActor):
@@ -88,24 +89,24 @@ class Console:
                 self.actor.stop.remote()
                 break
             elif key == curses.KEY_LEFT:
-                # 旋回は20にしないと遅い。
+                # 旋回は0.01にしないと遅い。
                 stdscr.addstr(f"Key pressed: ←\n")
-                velocity.angular.z = 20
+                velocity.angular.z = 0.01
             elif key == curses.KEY_RIGHT:
                 stdscr.addstr(f"Key pressed: →\n")
-                velocity.angular.z = -20
+                velocity.angular.z = -0.01
             elif key == ord('w'):
                 stdscr.addstr(f"Key pressed: w\n")
-                velocity.linear.x = 1
+                velocity.linear.x = 0.001
             elif key == ord('a'):
                 stdscr.addstr(f"Key pressed: a\n")
-                velocity.linear.y = 1
+                velocity.linear.y = 0.001
             elif key == ord('s'):
                 stdscr.addstr(f"Key pressed: s\n")
-                velocity.linear.x = -1
+                velocity.linear.x = -0.001
             elif key == ord('d'):
                 stdscr.addstr(f"Key pressed: d\n")
-                velocity.linear.y = -1
+                velocity.linear.y = -0.001
             
             self.actor.run.remote(velocity)
 

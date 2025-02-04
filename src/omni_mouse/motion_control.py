@@ -1,5 +1,6 @@
 import asyncio
 import curses
+import datetime
 from math import cos, pi, sin
 import numpy as np
 import ray
@@ -16,21 +17,27 @@ from omni_mouse.model import Twist, Vector3
 
 @ray.remote
 class MotionControlActor:
-    def __init__(self, wheel_radius: float = 0.024, shaft_length: float = 0.05, steps_per_revolution: int = 200, micro_steps: int = 128):
+    moter_init_abs_position = 0x100000
+    moter_init_abs_positions = np.array([0x100000, 0x100000, 0x100000])
+
+    def __init__(self, wheel_radius: float = 0.024, shaft_length: float = 0.05, steps_per_revolution: int = 200):
         self.velocity = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
         self.wheel_radius = wheel_radius
         self.shaft_length = shaft_length
         # SPS: Steps Per Secondを計算するための行列
-        self.sps_mat = (steps_per_revolution * micro_steps / (2 * pi)) * (1 / wheel_radius) * np.array([
+        self.sps_mat = (steps_per_revolution / (2 * pi)) * (1 / wheel_radius) * np.array([
             [cos(  pi      - pi / 2), sin(  pi      - pi / 2), - shaft_length],
             [cos(  pi / 3  - pi / 2), sin(  pi / 3  - pi / 2), - shaft_length],
             [cos(-(pi / 3) - pi / 2), sin(-(pi / 3) - pi / 2), - shaft_length]
         ])
+        self.vel_mat = np.linalg.inv(self.sps_mat)
 
         self.motors = []
         for i in range(3):
             st_chain = SpinChain(total_devices=1, spi_select=(1, i))
             motor = st_chain.create(0)
+            motor.setRegister(StRegister.PosAbs, self.moter_init_abs_position)
+            #motor.setRegister(StRegister.StepMode, 0x00)
             self.motors.append(motor)
 
         self.running = False  
@@ -42,6 +49,7 @@ class MotionControlActor:
             asyncio.create_task(self._odometry())
         self.running = True
         steps_per_second_list = self._calc_steps_per_second_of_wheels(np.array([velocity.linear.x, velocity.linear.y, velocity.angular.z]))
+        print(f"Steps per second: {steps_per_second_list}")
         for steps_per_second, motor in zip(steps_per_second_list, self.motors):
             if steps_per_second >= 0:
                 motor.setDirection(StConstant.DirReverse)
@@ -61,10 +69,13 @@ class MotionControlActor:
     async def _odometry(self):
         while self.running:
             new_positions = self._get_positions()
-            print(new_positions)
+            print(f"Time: {datetime.datetime.now()}")
+            print(f"Positions: {new_positions}")
+            oddm = np.dot(self.vel_mat, -1 / 128 * (new_positions - self.moter_init_abs_positions))
+            print(f"Odometry: {oddm}")
             self.positions = new_positions
             try:
-                await asyncio.sleep(3)
+                await asyncio.sleep(1)
             except asyncio.CancelledError:
                 break
 
@@ -89,24 +100,24 @@ class Console:
                 self.actor.stop.remote()
                 break
             elif key == curses.KEY_LEFT:
-                # 旋回は0.01にしないと遅い。
+                # 旋回は1にしないと遅い。
                 stdscr.addstr(f"Key pressed: ←\n")
-                velocity.angular.z = 0.01
+                velocity.angular.z = 1
             elif key == curses.KEY_RIGHT:
                 stdscr.addstr(f"Key pressed: →\n")
-                velocity.angular.z = -0.01
+                velocity.angular.z = -1
             elif key == ord('w'):
                 stdscr.addstr(f"Key pressed: w\n")
-                velocity.linear.x = 0.001
+                velocity.linear.x = 0.1
             elif key == ord('a'):
                 stdscr.addstr(f"Key pressed: a\n")
-                velocity.linear.y = 0.001
+                velocity.linear.y = 0.1
             elif key == ord('s'):
                 stdscr.addstr(f"Key pressed: s\n")
-                velocity.linear.x = -0.001
+                velocity.linear.x = -0.1
             elif key == ord('d'):
                 stdscr.addstr(f"Key pressed: d\n")
-                velocity.linear.y = -0.001
+                velocity.linear.y = -0.1
             
             self.actor.run.remote(velocity)
 

@@ -19,6 +19,7 @@ from omni_mouse.model import Twist, Vector3
 class MotionControlActor:
     moter_init_abs_position = 0x100000
     moter_init_abs_positions = np.array([0x100000, 0x100000, 0x100000])
+    moter_init_microsteps = 128
 
     def __init__(self, wheel_radius: float = 0.024, shaft_length: float = 0.05, steps_per_revolution: int = 200):
         self.velocity = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
@@ -37,7 +38,6 @@ class MotionControlActor:
             st_chain = SpinChain(total_devices=1, spi_select=(1, i))
             motor = st_chain.create(0)
             motor.setRegister(StRegister.PosAbs, self.moter_init_abs_position)
-            #motor.setRegister(StRegister.StepMode, 0x00)
             self.motors.append(motor)
 
         self.running = False  
@@ -71,7 +71,9 @@ class MotionControlActor:
             new_positions = self._get_positions()
             print(f"Time: {datetime.datetime.now()}")
             print(f"Positions: {new_positions}")
-            oddm = np.dot(self.vel_mat, -1 / 128 * (new_positions - self.moter_init_abs_positions))
+            # フルステップでの移動量を計算(モータードライバとOmniMouseの座標系とで回転の方向が逆なので、-1をかける)
+            position_diff_in_full_steps = -1 / self.moter_init_microsteps * (new_positions - self.moter_init_abs_positions)
+            oddm = np.dot(self.vel_mat, position_diff_in_full_steps)
             print(f"Odometry: {oddm}")
             self.positions = new_positions
             try:

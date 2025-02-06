@@ -52,10 +52,10 @@ class MotionControlActor:
         print(f"Steps per second: {steps_per_second_list}")
         for steps_per_second, motor in zip(steps_per_second_list, self.motors):
             if steps_per_second >= 0:
-                motor.setDirection(StConstant.DirReverse)
+                motor.setDirection(StConstant.DirForward)
                 motor.run(steps_per_second)
             else:
-                motor.setDirection(StConstant.DirForward)
+                motor.setDirection(StConstant.DirReverse)
                 motor.run(-steps_per_second)
 
     def stop(self):
@@ -71,8 +71,8 @@ class MotionControlActor:
             new_positions = self._get_positions()
             print(f"Time: {datetime.datetime.now()}")
             print(f"Positions: {new_positions}")
-            # フルステップでの移動量を計算(モータードライバとOmniMouseの座標系とで回転の方向が逆なので、-1をかける)
-            position_diff_in_full_steps = -1 / self.moter_init_microsteps * (new_positions - self.moter_init_abs_positions)
+            # フルステップでの移動量を計算
+            position_diff_in_full_steps = self.moter_init_microsteps * (new_positions - self.moter_init_abs_positions)
             oddm = np.dot(self.vel_mat, position_diff_in_full_steps)
             print(f"Odometry: {oddm}")
             self.positions = new_positions

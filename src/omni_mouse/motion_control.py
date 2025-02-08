@@ -17,11 +17,20 @@ from omni_mouse.model import Twist, Vector3
 
 @ray.remote
 class MotionControlActor:
+    """モーション制御を行うアクター
+    """
     moter_init_abs_position = 0x100000
     moter_init_abs_positions = np.array([0x100000, 0x100000, 0x100000])
     moter_init_microsteps = 128
 
     def __init__(self, wheel_radius: float = 0.024, shaft_length: float = 0.05, steps_per_revolution: int = 200):
+        """初期化
+
+        Args:
+            wheel_radius (float, optional): 車輪の半径. Defaults to 0.024.
+            shaft_length (float, optional): 車体の中心から車輪までの長さ. Defaults to 0.05.
+            steps_per_revolution (int, optional): 1回転あたりのステップ数. Defaults to 200.
+        """
         self.velocity = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
         self.wheel_radius = wheel_radius
         self.shaft_length = shaft_length
@@ -45,8 +54,15 @@ class MotionControlActor:
         self.position_subscribers = []
 
     def run(self, velocity: Twist):
+        """速度を指定してモーターを動かす。
+
+        Args:
+            velocity (Twist): 速度。linear.x, linear.y, angular.zにそれぞれx, y, z方向の速度を指定する。
+                座標系はロボットの座標系(ROSのbase_link)。ROSのgeometry_msgs/Twistと同じ。
+        """
         if not self.running:
             asyncio.create_task(self._odometry())
+        self.velocity = velocity
         self.running = True
         steps_per_second_list = self._calc_steps_per_second_of_wheels(np.array([velocity.linear.x, velocity.linear.y, velocity.angular.z]))
         print(f"Steps per second: {steps_per_second_list}")
@@ -59,11 +75,16 @@ class MotionControlActor:
                 motor.run(-steps_per_second)
 
     def stop(self):
+        """モーターを停止する。
+        """
+        self.velocity = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
         self.running = False
         for motor in self.motors:
             motor.hiZHard()
 
     def velocity(self):
+        """現在の速度を取得する。
+        """
         return self.velocity
 
     async def _odometry(self):

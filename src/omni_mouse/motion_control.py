@@ -13,7 +13,7 @@ from stspin import (
 )
 from textwrap import dedent
 
-from omni_mouse.model import Twist, Vector3
+from omni_mouse.model import Twist, Vector3, Point, Quaternion
 
 @ray.remote
 class MotionControlActor:
@@ -22,6 +22,8 @@ class MotionControlActor:
     moter_init_abs_position = 0x100000
     moter_init_abs_positions = np.array([0x100000, 0x100000, 0x100000])
     moter_init_microsteps = 128
+
+    _odometry_interval = 0.1
 
     def __init__(self, wheel_radius: float = 0.024, shaft_length: float = 0.05, steps_per_revolution: int = 200):
         """初期化
@@ -34,13 +36,12 @@ class MotionControlActor:
         self._velocity = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
         self.wheel_radius = wheel_radius
         self.shaft_length = shaft_length
-        # SPS: Steps Per Secondを計算するための行列
-        self.sps_mat = (steps_per_revolution / (2 * pi)) * (1 / wheel_radius) * np.array([
+        self.step_mat = (steps_per_revolution / (2 * pi)) * (1 / wheel_radius) * np.array([
             [cos(  pi      - pi / 2), sin(  pi      - pi / 2), - shaft_length],
             [cos(  pi / 3  - pi / 2), sin(  pi / 3  - pi / 2), - shaft_length],
             [cos(-(pi / 3) - pi / 2), sin(-(pi / 3) - pi / 2), - shaft_length]
         ])
-        self.vel_mat = np.linalg.inv(self.sps_mat)
+        self.odom_delta_mat = np.linalg.inv(self.step_mat)
 
         self.motors = []
         for i in range(3):
@@ -49,8 +50,9 @@ class MotionControlActor:
             motor.setRegister(StRegister.PosAbs, self.moter_init_abs_position)
             self.motors.append(motor)
 
-        self.running = False  
-        self.positions = self._get_positions()
+        self.running = False
+        self._pose = Point(0, 0, 0)
+        self.motor_last_abs_positions = self._get_motor_abs_positions()
         self.position_subscribers = []
 
     def run(self, velocity: Twist):
@@ -65,7 +67,6 @@ class MotionControlActor:
         self._velocity = velocity
         self.running = True
         steps_per_second_list = self._calc_steps_per_second_of_wheels(np.array([velocity.linear.x, velocity.linear.y, velocity.angular.z]))
-        print(f"Steps per second: {steps_per_second_list}")
         for steps_per_second, motor in zip(steps_per_second_list, self.motors):
             if steps_per_second >= 0:
                 motor.setDirection(StConstant.DirForward)
@@ -87,26 +88,33 @@ class MotionControlActor:
         """
         return self._velocity
 
+    def pose(self):
+        """現在の位置を取得する。
+        """
+        return self._pose
+
     async def _odometry(self):
         while self.running:
-            new_positions = self._get_positions()
-            print(f"Time: {datetime.datetime.now()}")
-            print(f"Positions: {new_positions}")
+            motor_current_abs_positions = self._get_motor_abs_positions()
             # フルステップでの移動量を計算
-            position_diff_in_full_steps = self.moter_init_microsteps * (new_positions - self.moter_init_abs_positions)
-            oddm = np.dot(self.vel_mat, position_diff_in_full_steps)
-            print(f"Odometry: {oddm}")
-            self.positions = new_positions
+            position_diff_in_full_steps = (motor_current_abs_positions - self.motor_last_abs_positions) / self.moter_init_microsteps
+            odom_delta = self._calc_odom_delta(position_diff_in_full_steps)
+
+            self.motor_last_abs_positions = motor_current_abs_positions
+            self._pose += Point(odom_delta[0], odom_delta[1], 0)
             try:
-                await asyncio.sleep(1)
+                await asyncio.sleep(self._odometry_interval)
             except asyncio.CancelledError:
                 break
 
-    def _get_positions(self):
+    def _get_motor_abs_positions(self):
         return np.array([self.motors[i].getRegister(StRegister.PosAbs) for i in range(3)])
 
     def _calc_steps_per_second_of_wheels(self, vec):
-        return np.dot(self.sps_mat, vec)
+        return np.dot(self.step_mat, vec)
+
+    def _calc_odom_delta(self, steps):
+        return np.dot(self.odom_delta_mat, steps)
 
 class Console:
     def __init__(self, actor: MotionControlActor):
@@ -118,6 +126,7 @@ class Console:
         while True:
             key = stdscr.getch()
             velocity = ray.get(self.actor.velocity.remote())
+            pose = ray.get(self.actor.pose.remote())
 
             if key == ord('q'):
                 self.actor.stop.remote()
@@ -142,7 +151,7 @@ class Console:
                 stdscr.addstr(f"Key pressed: d\n")
                 velocity.linear.y += -0.1
             
-            stdscr.addstr(f"velocity: {velocity}\n")
+            stdscr.addstr(f"pose: {pose}, velocity: {velocity}\n")
             self.actor.run.remote(velocity)
 
     def prompt(self, stdscr):

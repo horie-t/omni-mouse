@@ -31,7 +31,7 @@ class MotionControlActor:
             shaft_length (float, optional): 車体の中心から車輪までの長さ. Defaults to 0.05.
             steps_per_revolution (int, optional): 1回転あたりのステップ数. Defaults to 200.
         """
-        self.velocity = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
+        self._velocity = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
         self.wheel_radius = wheel_radius
         self.shaft_length = shaft_length
         # SPS: Steps Per Secondを計算するための行列
@@ -62,7 +62,7 @@ class MotionControlActor:
         """
         if not self.running:
             asyncio.create_task(self._odometry())
-        self.velocity = velocity
+        self._velocity = velocity
         self.running = True
         steps_per_second_list = self._calc_steps_per_second_of_wheels(np.array([velocity.linear.x, velocity.linear.y, velocity.angular.z]))
         print(f"Steps per second: {steps_per_second_list}")
@@ -77,7 +77,7 @@ class MotionControlActor:
     def stop(self):
         """モーターを停止する。
         """
-        self.velocity = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
+        self._velocity = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
         self.running = False
         for motor in self.motors:
             motor.hiZHard()
@@ -85,7 +85,7 @@ class MotionControlActor:
     def velocity(self):
         """現在の速度を取得する。
         """
-        return self.velocity
+        return self._velocity
 
     async def _odometry(self):
         while self.running:

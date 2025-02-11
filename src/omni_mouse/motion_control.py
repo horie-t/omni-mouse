@@ -125,23 +125,24 @@ class Console:
             elif key == curses.KEY_LEFT:
                 # 旋回は1にしないと遅い。
                 stdscr.addstr(f"Key pressed: ←\n")
-                velocity.angular.z = 1
+                velocity.angular.z += 1
             elif key == curses.KEY_RIGHT:
                 stdscr.addstr(f"Key pressed: →\n")
-                velocity.angular.z = -1
+                velocity.angular.z += -1
             elif key == ord('w'):
                 stdscr.addstr(f"Key pressed: w\n")
-                velocity.linear.x = 0.1
+                velocity.linear.x += 0.1
             elif key == ord('a'):
                 stdscr.addstr(f"Key pressed: a\n")
-                velocity.linear.y = 0.1
+                velocity.linear.y += 0.1
             elif key == ord('s'):
                 stdscr.addstr(f"Key pressed: s\n")
-                velocity.linear.x = -0.1
+                velocity.linear.x += -0.1
             elif key == ord('d'):
                 stdscr.addstr(f"Key pressed: d\n")
-                velocity.linear.y = -0.1
+                velocity.linear.y += -0.1
             
+            stdscr.addstr(f"velocity: {velocity}\n")
             self.actor.run.remote(velocity)
 
     def prompt(self, stdscr):

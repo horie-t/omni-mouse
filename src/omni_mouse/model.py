@@ -1,3 +1,5 @@
+import numpy as np
+
 class Vector3:
     def __init__(self, x, y, z):
         self.x, self.y, self.z = x, y, z
@@ -8,10 +10,16 @@ class Vector3:
         else:
             return np.array([self.x, self.y, self.z])
 
+    def __str__(self):
+        return f"({self.x}, {self.y}, {self.z})"
+
 class Twist:
     def __init__(self, linear: Vector3, angular: Vector3):
         self.linear = linear
         self.angular = angular
+
+    def __str__(self):
+        return f"linear: {self.linear}, angular: {self.angular}"
 
 class Point:
     def __init__(self, x, y, z):

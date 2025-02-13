@@ -12,8 +12,9 @@ from stspin import (
     utility,
 )
 from textwrap import dedent
+import time
 
-from omni_mouse.model import Twist, Vector3, Point, Quaternion
+from omni_mouse.model import Odometry, Point, Pose, Quaternion, Twist, Vector3
 
 @ray.remote
 class MotionControlActor:
@@ -51,7 +52,8 @@ class MotionControlActor:
             self.motors.append(motor)
 
         self.running = False
-        self._pose = Point(0, 0, 0)
+        # 初期位置は左下のマスの中央で北向き(9.0, 9.0, pi / 2)
+        self._pose = Pose(Point(9.0, 9.0, 0), Quaternion.from_euler('xyz', [0, 0, pi / 2]))
         self.motor_last_abs_positions = self._get_motor_abs_positions()
         self.position_subscribers = []
 
@@ -90,6 +92,9 @@ class MotionControlActor:
 
     def pose(self):
         """現在の位置を取得する。
+
+        Returns:
+            Pose: 現在の位置。オドメトリ座標系。
         """
         return self._pose
 
@@ -101,7 +106,8 @@ class MotionControlActor:
             odom_delta = self._calc_odom_delta(position_diff_in_full_steps)
 
             self.motor_last_abs_positions = motor_current_abs_positions
-            self._pose += Point(odom_delta[0], odom_delta[1], 0)
+            self._pose += Pose(Point(odom_delta[0], odom_delta[1], 0), Quaternion.from_euler('xyz', [0, 0, odom_delta[2]]))
+            odometry = Odometry(time.time_ns(), self._pose, self._velocity)
             try:
                 await asyncio.sleep(self._odometry_interval)
             except asyncio.CancelledError:

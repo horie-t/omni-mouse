@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.9,<3.13"
 dependencies = [
     "numpy>=2.0.2",
+    "opencv-python>=4.11.0.86",
     "ray[default]>=2.41.0",
     "scipy>=1.13.1",
     "st-spin[spidev]>=0.0.22.4",

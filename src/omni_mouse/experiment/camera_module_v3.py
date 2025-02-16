@@ -1,14 +1,30 @@
 import cv2
 from picamera2 import Picamera2
+import time
 
-camera0 = Picamera2(0)
-# config0 = camera0.create_preview_configuration(main={"size": (1640, 1232)})
-# camera0.configure(config0)
-# camera0.start_preview(NullPreview())
-camera0.start()
+count = 0
 
-image0 = camera0.capture_array()
-imgpath0 = f"photo_camera_module_v3.jpg"
-cv2.imwrite(imgpath0, image0)
+# 新しいフレームが来るたびに呼ばれる関数
+def on_new_frame(request):
+    frame = request.make_array("main")
+    # 任意の処理（ここではグレースケール変換）
+    gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
 
-camera0.stop()
+    global count
+    if count % 30 == 0:
+        imgpath = f"photo_camera_module_v3_{count}.jpg"
+        cv2.imwrite(imgpath, gray)
+    
+    count += 1
+
+# Picamera2セットアップ
+picam2 = Picamera2(0)
+picam2.configure(picam2.create_video_configuration(main={"size": (640, 480), "format": "RGB888"}))
+
+picam2.post_callback = on_new_frame
+
+picam2.start()
+
+time.sleep(30)
+
+picam2.stop()

@@ -1,5 +1,6 @@
 import asyncio
 import curses
+import cv2
 import datetime
 from math import cos, pi, sin
 import numpy as np
@@ -15,6 +16,7 @@ from textwrap import dedent
 import time
 
 from omni_mouse.model import Odometry, Point, Pose, Quaternion, Twist, Vector3
+from omni_mouse.sensor import CameraActor
 
 @ray.remote
 class MotionControlActor:
@@ -123,19 +125,21 @@ class MotionControlActor:
         return np.dot(self.odom_delta_mat, steps)
 
 class Console:
-    def __init__(self, actor: MotionControlActor):
-        self.actor = actor
+    def __init__(self, motion_controll_actor: MotionControlActor, camera_actor: CameraActor):
+        self.motion_controll_actor = motion_controll_actor
+        self.camera_actor = camera_actor
 
     def start(self, stdscr):
         self.prompt(stdscr)
 
         while True:
             key = stdscr.getch()
-            velocity = ray.get(self.actor.velocity.remote())
-            pose = ray.get(self.actor.pose.remote())
+            velocity = ray.get(self.motion_controll_actor.velocity.remote())
+            pose = ray.get(self.motion_controll_actor.pose.remote())
 
             if key == ord('q'):
-                self.actor.stop.remote()
+                self.motion_controll_actor.stop.remote()
+                self.camera_actor.stop.remote()
                 break
             elif key == curses.KEY_LEFT:
                 # 旋回は1にしないと遅い。
@@ -156,14 +160,20 @@ class Console:
             elif key == ord('d'):
                 stdscr.addstr(f"Key pressed: d\n")
                 velocity.linear.y += -0.1
+            elif key == ord('p'):
+                stdscr.addstr(f"Key pressed: p\n")
+                frame = ray.get(self.camera_actor.get_last_frame.remote())
+                imgpath = f"photo_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
+                cv2.imwrite(imgpath, frame)
             
             stdscr.addstr(f"pose: {pose}, velocity: {velocity}\n")
-            self.actor.run.remote(velocity)
+            self.motion_controll_actor.run.remote(velocity)
 
     def prompt(self, stdscr):
         stdscr.clear()
         stdscr.addstr(dedent("""\
         終了するには 'q' を押してください。
         上左下右はそれぞれ、'w', 'a', 's', 'd' を押してください。
-        左右の旋回は、'←', '→' を押してください
+        左右の旋回は、'←', '→' を押してください。
+        写真を撮るには 'p' を押してください。
         """))

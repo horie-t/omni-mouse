@@ -64,6 +64,20 @@ dtparam=spi=on
 dtoverlay=spi1-3cs,cs1_pin=27
 ```
 
+#### Picamera2をシステムのPython環境に依存せずに使うための準備
+
+Pythonのパッケージをシステムにインストールしているが、目的はPythonのパッケージが依存しているdebパッケージをインストールする事である。
+
+```bash
+sudo apt install -y python3-libcamera python3-kms++ libcap-dev
+sudo apt install -y python3-prctl libatlas-base-dev ffmpeg python3-pip
+sudo apt install -y python3-pyqt5 python3-opengl
+
+sudo apt install -y libcap-dev libatlas-base-dev libopenjp2-7
+sudo apt install -y libkms++-dev libfmt-dev libdrm-dev
+sudo apt install -y libcamera-dev
+```
+
 ## ソフトウェア実行環境構築
 
 1. Raspberry Pi上で、このリポジトリを `git clone` してください。  

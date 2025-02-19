@@ -85,11 +85,15 @@ sudo apt install -y libcamera-dev
     git@github.com:horie-t/omni-mouse.git
     cd omni-mouse
     ```
-2. パッケージをインストールしてください。  
+2. uvをインストールしてください。
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+3. パッケージをインストールしてください。  
     ```bash
     uv sync
     ```
-3. 仮想環境をアクティベートしてください。
+4. 仮想環境をアクティベートしてください。
     ```bash
     source .venv/bin/activate
     ```

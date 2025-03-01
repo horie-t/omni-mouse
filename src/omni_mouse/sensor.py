@@ -45,6 +45,6 @@ class CameraActor:
         gray_frame = cv2.cvtColor(red_extracted_frame, cv2.COLOR_BGR2GRAY)
         binary_frame = cv2.threshold(gray_frame, 1, 255, cv2.THRESH_BINARY)[1]
 
-        self._last_frame = binary_frame
-        #self._last_frame = main_frame # デバッグ用
+        #self._last_frame = binary_frame
+        self._last_frame = main_frame # デバッグ用
 

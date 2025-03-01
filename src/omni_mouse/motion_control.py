@@ -125,9 +125,11 @@ class MotionControlActor:
         return np.dot(self.odom_delta_mat, steps)
 
 class Console:
+    
     def __init__(self, motion_controll_actor: MotionControlActor, camera_actor: CameraActor):
         self.motion_controll_actor = motion_controll_actor
         self.camera_actor = camera_actor
+        self._speed_step = 0.01
 
     def start(self, stdscr):
         self.prompt(stdscr)
@@ -150,16 +152,16 @@ class Console:
                 velocity.angular.z += -1
             elif key == ord('w'):
                 stdscr.addstr(f"Key pressed: w\n")
-                velocity.linear.x += 0.1
+                velocity.linear.x += self._speed_step
             elif key == ord('a'):
                 stdscr.addstr(f"Key pressed: a\n")
-                velocity.linear.y += 0.1
+                velocity.linear.y += self._speed_step
             elif key == ord('s'):
                 stdscr.addstr(f"Key pressed: s\n")
-                velocity.linear.x += -0.1
+                velocity.linear.x += - self._speed_step
             elif key == ord('d'):
                 stdscr.addstr(f"Key pressed: d\n")
-                velocity.linear.y += -0.1
+                velocity.linear.y += - self._speed_step
             elif key == ord('p'):
                 stdscr.addstr(f"Key pressed: p\n")
                 frame = ray.get(self.camera_actor.get_last_frame.remote())

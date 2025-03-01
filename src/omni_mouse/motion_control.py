@@ -130,6 +130,7 @@ class Console:
         self.motion_controll_actor = motion_controll_actor
         self.camera_actor = camera_actor
         self._speed_step = 0.01
+        self._rotate_step = 0.1
 
     def start(self, stdscr):
         self.prompt(stdscr)
@@ -146,10 +147,10 @@ class Console:
             elif key == curses.KEY_LEFT:
                 # 旋回は1にしないと遅い。
                 stdscr.addstr(f"Key pressed: ←\n")
-                velocity.angular.z += 1
+                velocity.angular.z += self._rotate_step
             elif key == curses.KEY_RIGHT:
                 stdscr.addstr(f"Key pressed: →\n")
-                velocity.angular.z += -1
+                velocity.angular.z -= self._rotate_step
             elif key == ord('w'):
                 stdscr.addstr(f"Key pressed: w\n")
                 velocity.linear.x += self._speed_step
@@ -158,10 +159,10 @@ class Console:
                 velocity.linear.y += self._speed_step
             elif key == ord('s'):
                 stdscr.addstr(f"Key pressed: s\n")
-                velocity.linear.x += - self._speed_step
+                velocity.linear.x -= self._speed_step
             elif key == ord('d'):
                 stdscr.addstr(f"Key pressed: d\n")
-                velocity.linear.y += - self._speed_step
+                velocity.linear.y -= self._speed_step
             elif key == ord('p'):
                 stdscr.addstr(f"Key pressed: p\n")
                 frame = ray.get(self.camera_actor.get_last_frame.remote())

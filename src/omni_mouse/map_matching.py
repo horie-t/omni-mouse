@@ -22,11 +22,11 @@ class MapMatchingActor:
         while self.started:
             binary_frame = await self.camera_actor.get_last_frame.remote()
 
-            main_frame = np.array(await self.camera_actor.get_last_frame.remote())
-            imgpath = f"photo_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
-            cv2.imwrite(imgpath, main_frame)
+            # main_frame = np.array(await self.camera_actor.get_last_frame.remote())
+            # imgpath = f"photo_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
+            # cv2.imwrite(imgpath, main_frame)
+            # binary_frame = self._to_binary_frame(main_frame)
 
-            binary_frame = self._to_binary_frame(main_frame)
             contours = self._calc_contours(binary_frame)
 
             await asyncio.sleep(0.1)
@@ -58,9 +58,10 @@ class MapMatchingActor:
 
         # 輪郭描画
         cv2.drawContours(contour_frame, contours, -1, (255, 255, 255), 2)
-        for point in contours[0]:
-            x, y = point[0]
-            cv2.circle(contour_frame, (x, y), 2, (0, 0, 255), -1)
+        for contour in contours:
+            for point in contour:
+                x, y = point[0]
+                cv2.circle(contour_frame, (x, y), 2, (0, 0, 255), -1)
 
         # 画像保存(デバッグ用)
         imgpath = f"contour_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.png"
@@ -77,7 +78,7 @@ class MapMatchingActor:
 
         # 赤色の範囲（HSV）を指定
         # (一般的に赤色は色相の両端にあるので2つ必要だが、マイクロマウスで使用する赤色は1つで足りる)
-        lower_red = np.array([120, 60, 140])
+        lower_red = np.array([120, 30, 140])
         upper_red = np.array([179, 255, 255])
 
         # 赤色領域マスク作成

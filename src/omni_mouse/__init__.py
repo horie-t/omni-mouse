@@ -14,7 +14,7 @@ def keyinput(stdscr):
     # カメラの初期化
     camera_actor = CameraActor.remote()
     camera_actor.start.remote()
-    time.sleep(5) # カメラの初期化待ち
+    time.sleep(2) # カメラの初期化待ち
 
     # マップマッチングの初期化
     map_matching_actor = MapMatchingActor.remote(camera_actor)

@@ -1,4 +1,5 @@
 import curses
+import ray
 import time
 
 from omni_mouse.model import Twist, Vector3
@@ -14,4 +15,5 @@ def keyinput(stdscr):
     console.start(stdscr)
 
 def main() -> None:
+    ray.init(log_to_driver=False)
     curses.wrapper(keyinput)

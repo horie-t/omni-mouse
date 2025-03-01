@@ -32,7 +32,7 @@ class CameraActor:
 
         # 赤色の範囲（HSV）を指定
         # (一般的に赤色は色相の両端にあるので2つ必要だが、マイクロマウスで使用する赤色は1つで足りる)
-        lower_red = np.array([120, 0, 0])
+        lower_red = np.array([120, 60, 140])
         upper_red = np.array([179, 255, 255])
 
         # 赤色領域マスク作成

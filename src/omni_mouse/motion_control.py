@@ -146,10 +146,10 @@ class Console:
                 break
             elif key == curses.KEY_LEFT:
                 # 旋回は1にしないと遅い。
-                stdscr.addstr(f"Key pressed: ←\n")
+                stdscr.addstr(f"Key pressed: <-\n")
                 velocity.angular.z += self._rotate_step
             elif key == curses.KEY_RIGHT:
-                stdscr.addstr(f"Key pressed: →\n")
+                stdscr.addstr(f"Key pressed: ->\n")
                 velocity.angular.z -= self._rotate_step
             elif key == ord('w'):
                 stdscr.addstr(f"Key pressed: w\n")

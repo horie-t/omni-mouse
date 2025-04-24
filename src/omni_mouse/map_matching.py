@@ -3,6 +3,7 @@ import cv2
 import datetime
 import numpy as np
 import ray
+import time
 
 @ray.remote
 class MapMatchingActor:
@@ -20,14 +21,16 @@ class MapMatchingActor:
 
     async def _map_matching(self):
         while self.started:
-            binary_frame = await self.camera_actor.get_last_frame.remote()
 
-            # main_frame = np.array(await self.camera_actor.get_last_frame.remote())
-            # imgpath = f"photo_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
-            # cv2.imwrite(imgpath, main_frame)
-            # binary_frame = self._to_binary_frame(main_frame)
-
-            contours = self._calc_contours(binary_frame)
+            # カメラからフレームを取得(debug用)
+            main_frame = np.array(await self.camera_actor.get_last_frame.remote())
+            main_frame = cv2.cvtColor(main_frame, cv2.COLOR_RGB2BGR)
+            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            imgpath = f"fish_eye_omni_mouse_{timestamp}.jpg"
+            cv2.imwrite(imgpath, main_frame)
+            
+            # binary_frame = await self.camera_actor.get_last_frame.remote()
+            # contours = self._calc_contours(binary_frame)
 
             await asyncio.sleep(0.1)
     

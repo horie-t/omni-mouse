@@ -22,9 +22,9 @@ from omni_mouse.sensor import CameraActor
 class MotionControlActor:
     """モーション制御を行うアクター
     """
-    moter_init_abs_position = 0x100000
-    moter_init_abs_positions = np.array([0x100000, 0x100000, 0x100000])
-    moter_init_microsteps = 128
+    motor_init_abs_position = 0x100000
+    motor_init_abs_positions = np.array([0x100000, 0x100000, 0x100000])
+    motor_init_microsteps = 128
 
     _odometry_interval = 0.1
 
@@ -50,7 +50,7 @@ class MotionControlActor:
         for i in range(3):
             st_chain = SpinChain(total_devices=1, spi_select=(1, i))
             motor = st_chain.create(0)
-            motor.setRegister(StRegister.PosAbs, self.moter_init_abs_position)
+            motor.setRegister(StRegister.PosAbs, self.motor_init_abs_position)
             self.motors.append(motor)
 
         self.running = False
@@ -104,7 +104,7 @@ class MotionControlActor:
         while self.running:
             motor_current_abs_positions = self._get_motor_abs_positions()
             # フルステップでの移動量を計算
-            position_diff_in_full_steps = (motor_current_abs_positions - self.motor_last_abs_positions) / self.moter_init_microsteps
+            position_diff_in_full_steps = (motor_current_abs_positions - self.motor_last_abs_positions) / self.motor_init_microsteps
             odom_delta = self._calc_odom_delta(position_diff_in_full_steps)
 
             self.motor_last_abs_positions = motor_current_abs_positions
@@ -126,8 +126,8 @@ class MotionControlActor:
 
 class Console:
     
-    def __init__(self, motion_controll_actor: MotionControlActor, camera_actor: CameraActor):
-        self.motion_controll_actor = motion_controll_actor
+    def __init__(self, motion_control_actor: MotionControlActor, camera_actor: CameraActor):
+        self.motion_control_actor = motion_control_actor
         self.camera_actor = camera_actor
         self._speed_step = 0.01
         self._rotate_step = 0.1
@@ -137,11 +137,11 @@ class Console:
 
         while True:
             key = stdscr.getch()
-            velocity = ray.get(self.motion_controll_actor.velocity.remote())
-            pose = ray.get(self.motion_controll_actor.pose.remote())
+            velocity = ray.get(self.motion_control_actor.velocity.remote())
+            pose = ray.get(self.motion_control_actor.pose.remote())
 
             if key == ord('q'):
-                self.motion_controll_actor.stop.remote()
+                self.motion_control_actor.stop.remote()
                 self.camera_actor.stop.remote()
                 break
             elif key == curses.KEY_LEFT:
@@ -170,7 +170,7 @@ class Console:
                 cv2.imwrite(imgpath, frame)
             
             stdscr.addstr(f"pose: {pose}, velocity: {velocity}\n")
-            self.motion_controll_actor.run.remote(velocity)
+            self.motion_control_actor.run.remote(velocity)
 
     def prompt(self, stdscr):
         stdscr.clear()

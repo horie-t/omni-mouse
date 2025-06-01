@@ -9,7 +9,7 @@ from omni_mouse.sensor import CameraActor
 
 def keyinput(stdscr):
     # マウスの初期化
-    motion_controll_actor = MotionControlActor.remote()
+    motion_control_actor = MotionControlActor.remote()
 
     # カメラの初期化
     camera_actor = CameraActor.remote()
@@ -21,7 +21,7 @@ def keyinput(stdscr):
     map_matching_actor.start.remote()
 
     # コンソールの初期化
-    console = Console(motion_controll_actor, camera_actor)
+    console = Console(motion_control_actor, camera_actor)
     console.start(stdscr)
 
 def main() -> None:

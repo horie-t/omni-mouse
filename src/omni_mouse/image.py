@@ -1,4 +1,5 @@
 import cv2
+import datetime
 import numpy as np
 
 class MazeImageProcessor:
@@ -41,5 +42,61 @@ class MazeImageProcessor:
 
         return binary_frame
 
+    @classmethod
+    def calc_contours(cls, binary_frame):
+        """
+        二値化画像に対してモルフォロジー処理を行い、輪郭を検出します。
+
+        入力された二値化画像に対して、ノイズ除去と穴埋めのための
+        モルフォロジー演算（オープニング・クロージング）を適用した後、
+        外部輪郭を検出して返します。
+
+        処理手順:
+        1. オープニング演算により小さな白ノイズを除去
+        2. クロージング演算により小さな黒い穴を埋める
+        3. 処理後の画像から外部輪郭を検出
+
+        Args:
+            binary_frame (numpy.ndarray): 処理対象の二値化画像（白：255、黒：0）
+
+        Returns:
+            list: 検出された輪郭のリスト。各輪郭はOpenCVの輪郭形式
+              （numpy.ndarrayの座標点の配列）
+        """
+
+        # オープニングやクロージングを使って凹凸と減らす
+        # ==============================================
+
+        # 1. カーネル(構造要素)を定義
+        #    サイズや形状(長方形/楕円/十字など)は目的に応じて変更します
+        open_kernel = np.ones((7, 7), np.uint8)
+        close_kernel = np.ones((17, 17), np.uint8)
+
+        # 2. オープニング (MORPH_OPEN) で小さな白ノイズを除去
+        opened_frame = cv2.morphologyEx(binary_frame, cv2.MORPH_OPEN, open_kernel)
+
+        # 3. クロージング (MORPH_CLOSE) で小さな黒の穴を埋める
+        #    必要に応じて「オープニング後にさらにクロージング」という順序でもOK
+        closed_frame = cv2.morphologyEx(opened_frame, cv2.MORPH_CLOSE, close_kernel)
 
 
+        # 凹凸をなくしたフレームの輪郭を抽出する
+        # ======================================
+        # 輪郭検出（境界部分）
+        contours, _ = cv2.findContours(closed_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # 可視化用
+        contour_frame = np.zeros((binary_frame.shape[0], binary_frame.shape[1], 3), np.uint8)
+
+        # 輪郭描画
+        cv2.drawContours(contour_frame, contours, -1, (255, 255, 255), 2)
+        for contour in contours:
+            for point in contour:
+                x, y = point[0]
+                cv2.circle(contour_frame, (x, y), 2, (0, 0, 255), -1)
+
+        # # 画像保存(デバッグ用)
+        # imgpath = f"contour_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+        # cv2.imwrite(imgpath, contour_frame)
+
+        return contours

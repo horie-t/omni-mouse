@@ -1,8 +1,47 @@
 import cv2
 import datetime
+from importlib import resources
 import numpy as np
 
 class MazeImageProcessor:
+    calibrated = False
+    map1 = None
+    map2 = None
+
+    @classmethod
+    def load_fisheye_calibration_data(cls):
+        if not cls.calibrated:
+            with resources.path("omni_mouse.data", "fisheye_calibration.npz") as path:
+                # キャリブレーションデータの読み込み
+                calibration_data = np.load("path")  # キャリブレーションデータを保存したファイル名
+                k = calibration_data["K"]
+                d = calibration_data["D"]
+                dim = calibration_data["DIM"]
+
+                # オプション: より詳細なマッピングのための新しいカメラ行列の計算
+                # balance=1.0 で画像の全体を表示、balance=0.0 で中心部分のみを表示
+                new_k = cv2.fisheye.estimateNewCameraMatrixForUndistortRectify(k, d, dim, np.eye(3), balance=0.0)
+                cls.map1, cls.map2 = cv2.fisheye.initUndistortRectifyMap(k, d, np.eye(3), new_k, dim, cv2.CV_16SC2)
+
+                cls.calibrated = True
+
+    @classmethod
+    def undistort_fisheye_image(cls, img, output_image_path, K, D, DIM):
+        """
+        魚眼レンズ画像を指定されたパラメータで補正します。
+
+        Args:
+            img (str): 歪んだ魚眼レンズ画像のパス
+            output_image_path (str): 補正後の画像の保存パス
+            K (numpy.ndarray): カメラ行列 (3x3)
+            D (numpy.ndarray): 歪み係数 (4x1 または 8x1)
+            DIM (tuple): 歪んだ画像の寸法 (幅, 高さ)
+        Returns:
+            歪を取り除いた画像
+        """
+        undistorted_img = cv2.remap(img, cls.map1, cls.map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+        return undistorted_img
+
     @classmethod
     def extract_red_area(cls, frame):
         """

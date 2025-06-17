@@ -24,3 +24,8 @@ build-backend = "hatchling.build"
 
 [tool.uv.sources]
 rpi-libcamera = { git = "https://github.com/horie-t/pylibcamera.git", rev = "v0.1a11" }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+]

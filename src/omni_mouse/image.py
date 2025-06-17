@@ -11,9 +11,9 @@ class MazeImageProcessor:
     @classmethod
     def load_fisheye_calibration_data(cls):
         if not cls.calibrated:
-            with resources.path("omni_mouse.data", "fisheye_calibration.npz") as path:
+            with resources.files("omni_mouse.data").joinpath("fisheye_calibration.npz").open("rb") as f:
                 # キャリブレーションデータの読み込み
-                calibration_data = np.load(path)  # キャリブレーションデータを保存したファイル名
+                calibration_data = np.load(f)  # キャリブレーションデータを保存したファイル名
                 k = calibration_data["K"]
                 d = calibration_data["D"]
                 dim = calibration_data["DIM"]

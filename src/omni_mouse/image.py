@@ -54,16 +54,13 @@ class MazeImageProcessor:
             numpy.ndarray: 赤色領域が白（255）、それ以外が黒（0）の二値化画像
         """
 
-        # 画像の一部を黒く塗りつぶす（マウスの赤色部分をマスク処理して抽出するため）
-        cv2.rectangle(frame, (800, 350), (1450, 900), (0, 0, 0), -1)
-
         # HSV色空間に変換し赤色を抽出する
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # 赤色の範囲（HSV）を指定
         # (一般的に赤色は色相の両端にあるので2つ必要だが、マイクロマウスで使用する赤色は1つで足りる)
-        lower_red = np.array([120, 30, 140])
-        upper_red = np.array([179, 255, 255])
+        lower_red = np.array([150, 60, 60])
+        upper_red = np.array([179, 166, 180])
 
         # 赤色領域マスク作成
         mask = cv2.inRange(hsv_frame, lower_red, upper_red)

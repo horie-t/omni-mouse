@@ -26,16 +26,12 @@ class MazeImageProcessor:
                 cls.calibrated = True
 
     @classmethod
-    def undistort_fisheye_image(cls, img, output_image_path, K, D, DIM):
+    def undistort_fisheye_image(cls, img: np.ndarray) -> np.ndarray:
         """
         魚眼レンズ画像を指定されたパラメータで補正します。
 
         Args:
             img (str): 歪んだ魚眼レンズ画像のパス
-            output_image_path (str): 補正後の画像の保存パス
-            K (numpy.ndarray): カメラ行列 (3x3)
-            D (numpy.ndarray): 歪み係数 (4x1 または 8x1)
-            DIM (tuple): 歪んだ画像の寸法 (幅, 高さ)
         Returns:
             歪を取り除いた画像
         """

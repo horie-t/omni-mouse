@@ -4,6 +4,8 @@ import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
 import com.t_horie.omni_mouse.hardware.imu.Bno055IMUModule;
 import com.t_horie.omni_mouse.hardware.imu.IMUModule;
+import com.t_horie.omni_mouse.sensing.odometry.IMUOdometryModule;
+import com.t_horie.omni_mouse.sensing.odometry.OdometryModule;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -27,24 +29,25 @@ public class OmniMouseApplication {
 		return args -> {
 			Context pi4j = Pi4J.newAutoContext();
 			IMUModule imuModule = new Bno055IMUModule(pi4j, I2C_BUS);
+			OdometryModule odometryModule = new IMUOdometryModule(imuModule);
 
 			AtomicInteger counter = new AtomicInteger(0);
 
-			// Read sensor at 100Hz (every 10ms)
-			var subscription = Flux.interval(Duration.ofMillis(10))
-					.subscribe(_ -> {
-						var data = imuModule.readData();
+			// Start odometry at 100Hz
+			var subscription = odometryModule.start()
+					.subscribe(odomData -> {
 						int count = counter.incrementAndGet();
 
 						// Output at 10Hz (every 10th reading)
 						if (count % 10 == 0) {
-							System.out.println(data);
+							System.out.println(odomData);
 						}
 					});
 
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				System.out.println("Shutting down...");
 				subscription.dispose();
+				odometryModule.shutdown();
 				imuModule.shutdown();
 				pi4j.shutdown();
 			}));

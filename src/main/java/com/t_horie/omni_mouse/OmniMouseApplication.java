@@ -2,8 +2,7 @@ package com.t_horie.omni_mouse;
 
 import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
-import com.pi4j.io.gpio.digital.DigitalOutput;
-import com.pi4j.io.gpio.digital.DigitalState;
+import com.t_horie.omni_mouse.sensor.Bno055Sensor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,11 +10,12 @@ import org.springframework.context.annotation.Bean;
 import reactor.core.publisher.Flux;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SpringBootApplication
 public class OmniMouseApplication {
 
-	private static final int LED_PIN = 25;
+	private static final int I2C_BUS = 1;
 
 	public static void main(String[] args) {
 		SpringApplication.run(OmniMouseApplication.class, args);
@@ -25,18 +25,26 @@ public class OmniMouseApplication {
 	public CommandLineRunner run() {
 		return args -> {
 			Context pi4j = Pi4J.newAutoContext();
+			Bno055Sensor sensor = new Bno055Sensor(pi4j, I2C_BUS);
 
-			DigitalOutput led = pi4j.digitalOutput().create(LED_PIN);
+			AtomicInteger counter = new AtomicInteger(0);
 
-			var subscription = Flux.interval(Duration.ofSeconds(1))
+			// Read sensor at 100Hz (every 10ms)
+			var subscription = Flux.interval(Duration.ofMillis(10))
 					.subscribe(_ -> {
-						led.toggle();
-						System.out.println("LED " + (led.state() == DigitalState.HIGH ? "ON" : "OFF"));
+						var data = sensor.readData();
+						int count = counter.incrementAndGet();
+
+						// Output at 10Hz (every 10th reading)
+						if (count % 10 == 0) {
+							System.out.println(data);
+						}
 					});
 
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				System.out.println("Shutting down...");
 				subscription.dispose();
+				sensor.shutdown();
 				pi4j.shutdown();
 			}));
 

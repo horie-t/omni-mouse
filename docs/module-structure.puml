@@ -1,0 +1,145 @@
+@startuml マイクロマウス モジュール構成
+
+!define HARDWARE #FFE6E6
+!define SENSING #E6F3FF
+!define CONTROL #E6FFE6
+!define PLANNING #FFF9E6
+!define DECISION #F3E6FF
+!define FRAMEWORK #E6E6E6
+
+skinparam packageStyle rectangle
+
+' Force vertical layout
+'left to right direction
+
+package "Decision Layer" DECISION {
+  component [StateManager] as STATE
+  component [MissionController] as MISSION
+  component [SafetyModule] as SAFETY
+
+  note right of STATE
+    状態管理
+    待機/探索/最短走行
+  end note
+
+  note right of MISSION
+    全体フロー制御
+    シーケンス管理
+  end note
+
+  note right of SAFETY
+    異常検知
+    緊急停止
+  end note
+}
+
+package "Planning Layer" PLANNING {
+  component [MappingModule] as MAP
+  component [ExplorationModule] as EXPLORE
+  component [PathPlanningModule] as PATH
+
+  note right of MAP
+    迷路マップ構築
+    16x16グリッド管理
+  end note
+
+  note right of EXPLORE
+    探索戦略
+    幅優先探索
+    足立法
+  end note
+
+  note right of PATH
+    最短経路計算
+    A*アルゴリズム
+    ダイクストラ法
+  end note
+}
+
+package "Control Layer" CONTROL {
+  component [MotionControlModule] as MOTION
+  component [PathFollowingModule] as FOLLOW
+  component [StabilizationModule] as STAB
+
+  note right of MOTION
+    オムニホイール
+    逆運動学計算
+    3輪独立制御
+  end note
+
+  note right of FOLLOW
+    経路追従制御
+    PID制御
+  end note
+}
+
+package "Sensing Layer" SENSING {
+  component [VisionModule] as VISION
+  component [OdometryModule] as ODOM
+  component [LocalizationModule] as LOCAL
+
+  note right of VISION
+    画像処理
+    壁検出
+    エッジ抽出
+  end note
+
+  note right of LOCAL
+    センサーフュージョン
+    位置・姿勢推定
+  end note
+}
+
+package "Hardware Layer" HARDWARE {
+  component [CameraModule] as CAM
+  component [IMUModule] as IMU
+  component [MotorControlModule] as MOTOR
+  component [HardwareAbstractionLayer] as HAL
+
+  note right of CAM
+    カメラ画像取得
+    OpenCV連携
+  end note
+
+  note right of IMU
+    I2C/SPI通信
+    加速度・ジャイロ取得
+  end note
+
+  note right of MOTOR
+    GPIO制御
+    ステッピングモーター
+    パルス生成
+  end note
+}
+
+package "Spring WebFlux Layer (横断的関心事)" as FRAMEWORK_PKG FRAMEWORK {
+  component [ReactiveEventBus] as EVENT
+  component [MonitoringAPI] as API
+  component [ConfigurationService] as CONFIG
+
+  note right of EVENT
+    Reactor基盤
+    非同期イベント処理
+    Flux/Monoストリーム
+  end note
+
+  note right of API
+    REST API
+    WebSocket配信
+    開発・デバッグ用
+  end note
+
+  note right of CONFIG
+    パラメータ管理
+    設定の永続化
+  end note
+}
+
+' Force vertical ordering with invisible connections
+SAFETY -[hidden]down-> PATH
+PATH -[hidden]down-> STAB
+STAB -[hidden]down-> ODOM
+ODOM -[hidden]down-> HAL
+
+@enduml

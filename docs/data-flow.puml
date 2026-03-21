@@ -1,0 +1,94 @@
+@startuml マイクロマウス データフロー
+
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+
+' Components
+component "Camera" as CAM #FFE6E6
+component "IMU" as IMU #FFE6E6
+component "Motor Encoder" as ENC #FFE6E6
+
+component "Vision\nModule" as VISION #E6F3FF
+component "Odometry\nModule" as ODOM #E6F3FF
+component "Localization\nModule" as LOCAL #E6F3FF
+
+component "Mapping\nModule" as MAP #FFF9E6
+component "Exploration\nModule" as EXPLORE #FFF9E6
+component "Path Planning\nModule" as PATH #FFF9E6
+
+component "Path Following\nModule" as FOLLOW #E6FFE6
+component "Motion Control\nModule" as MOTION #E6FFE6
+component "Stabilization\nModule" as STAB #E6FFE6
+
+component "State\nManager" as STATE #F3E6FF
+component "Mission\nController" as MISSION #F3E6FF
+component "Safety\nModule" as SAFETY #F3E6FF
+
+component "Stepper\nMotors" as MOTOR #FFE6E6
+
+component "Reactive\nEvent Bus" as EVENT #E6E6E6
+component "Monitoring\nAPI" as API #E6E6E6
+
+' Main data flow - Sensing
+CAM --> VISION : 画像データ\n(640x480)
+IMU --> ODOM : 加速度・ジャイロ\n(100Hz)
+ENC --> ODOM : 回転数
+
+VISION --> LOCAL : 壁検出情報\n(距離・角度)
+ODOM --> LOCAL : 推定位置\n(x, y, θ)
+
+' Main data flow - Planning
+LOCAL --> MAP : 現在位置・姿勢\n(x, y, θ)
+VISION --> MAP : 壁情報\n(前後左右)
+MAP --> EXPLORE : 迷路マップ\n(16x16配列)
+MAP --> PATH : 迷路マップ\n(16x16配列)
+EXPLORE --> PATH : 探索目標\n(ゴール座標)
+
+' Main data flow - Control
+PATH --> FOLLOW : 目標経路\n(座標列)
+LOCAL --> FOLLOW : 現在位置・姿勢\n(x, y, θ)
+FOLLOW --> MOTION : 目標速度\n(Vx, Vy, ω)
+IMU --> STAB : 姿勢データ\n(roll, pitch, yaw)
+STAB --> MOTION : 補正値\n(Δω)
+MOTION --> MOTOR : モーター指令\n(3軸パルス)
+
+' Decision flow
+MISSION --> STATE : 状態遷移指令\n(探索/最短)
+STATE --> EXPLORE : 探索開始/停止
+STATE --> PATH : 最短経路要求
+
+' Safety flow
+LOCAL ..> SAFETY : 位置異常検知
+VISION ..> SAFETY : センサー異常
+SAFETY ..> MOTOR : 緊急停止
+
+' Event bus flow
+VISION ..> EVENT : publish\n(壁検出イベント)
+LOCAL ..> EVENT : publish\n(位置更新イベント)
+MAP ..> EVENT : publish\n(マップ更新イベント)
+STATE ..> EVENT : publish\n(状態変更イベント)
+EVENT ..> API : subscribe\n(全イベント)
+
+legend right
+  |= 線種 |= 意味 |
+  | 実線 → | 主要データフロー(同期) |
+  | 点線 ..> | イベント配信(非同期) |
+
+  |= 色 |= レイヤー |
+  | <#FFE6E6> | Hardware |
+  | <#E6F3FF> | Sensing |
+  | <#FFF9E6> | Planning |
+  | <#E6FFE6> | Control |
+  | <#F3E6FF> | Decision |
+  | <#E6E6E6> | Framework |
+endlegend
+
+note as N1
+  **制御周期**
+  ・画像処理: 30Hz
+  ・位置推定: 100Hz
+  ・モーター制御: 1kHz
+  ・経路計画: イベント駆動
+end note
+
+@enduml

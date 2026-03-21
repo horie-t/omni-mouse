@@ -28,11 +28,26 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
+		<pi4j.version>4.0.0</pi4j.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
+		<!-- include Pi4J Core -->
+		<dependency>
+			<groupId>com.pi4j</groupId>
+			<artifactId>pi4j-core</artifactId>
+			<version>${pi4j.version}</version>
+		</dependency>
+
+		<!-- include Pi4J Plugin (Platforms and I/O Providers) -->
+		<dependency>
+			<groupId>com.pi4j</groupId>
+			<artifactId>pi4j-plugin-ffm</artifactId>
+			<version>${pi4j.version}</version>
 		</dependency>
 
 		<dependency>
@@ -44,6 +59,17 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.3.0</version> <configuration>
+				<archive>
+					<manifestEntries>
+						<Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
+					</manifestEntries>
+				</archive>
+			</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

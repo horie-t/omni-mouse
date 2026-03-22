@@ -20,7 +20,7 @@ public class OmniMouseApplication {
 
 	// Motor coil voltage ratio: 0x40 = 25% of Vcc.
 	// Adjust if the motor doesn't move (too low) or overheats (too high).
-	private static final byte KVAL = 0x60;
+	private static final byte KVAL = 0x40;
 
 	// Target speed for verification test
 	private static final double TEST_SPEED_REVS_PER_SEC = 0.1;

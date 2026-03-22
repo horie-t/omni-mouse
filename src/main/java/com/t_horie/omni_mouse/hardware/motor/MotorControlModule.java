@@ -2,25 +2,25 @@ package com.t_horie.omni_mouse.hardware.motor;
 
 /**
  * Hardware abstraction layer for stepper motor driver.
- * Controls a single stepper motor via SPI.
+ * Supports single or daisy-chained motor configurations.
  */
 public interface MotorControlModule extends AutoCloseable {
 
-    /**
-     * Run the motor at the specified speed.
-     *
-     * @param revsPerSec revolutions per second (positive = forward, negative = reverse)
-     */
-    void run(double revsPerSec);
+    /** Returns the number of motors managed by this module. */
+    int getMotorCount();
 
     /**
-     * Stop the motor (active braking, holds position).
+     * Run all motors at specified speeds.
+     *
+     * @param revsPerSec speed per motor (positive = forward, negative = reverse).
+     *                   Array length must equal {@link #getMotorCount()}.
      */
+    void run(double[] revsPerSec);
+
+    /** Stop all motors with active braking (holds shaft position). */
     void stop();
 
-    /**
-     * Put motor outputs in high-impedance state (no holding torque).
-     */
+    /** Release all motor coils (no holding torque). */
     void freeRun();
 
     @Override

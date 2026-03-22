@@ -35,8 +35,13 @@ public class OmniMouseApplication {
 			Context pi4j = Pi4J.newAutoContext();
 			MotorControlModule motor = new L6470MotorModule(pi4j, SPI_BUS, SPI_CS, KVAL);
 
-			System.out.printf("Motor starting: %.2f rev/sec%n", TEST_SPEED_REVS_PER_SEC);
-			motor.run(TEST_SPEED_REVS_PER_SEC);
+			// All 3 motors at 0.1 rev/sec forward
+			double[] speeds = new double[motor.getMotorCount()];
+			java.util.Arrays.fill(speeds, TEST_SPEED_REVS_PER_SEC);
+
+			System.out.printf("Motors (%d) starting: %.2f rev/sec%n",
+					motor.getMotorCount(), TEST_SPEED_REVS_PER_SEC);
+			motor.run(speeds);
 
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				System.out.println("Shutting down...");

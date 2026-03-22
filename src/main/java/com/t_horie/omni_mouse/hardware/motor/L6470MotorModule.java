@@ -17,11 +17,13 @@ import com.pi4j.io.spi.SpiBus;
  *   RPi SCLK and CE shared by all three chips.
  * </pre>
  *
- * <h2>Byte ordering in daisy chain</h2>
- * For N motors and an M-byte command, N×M bytes are sent in one CS transaction.
- * Each byte position k is a group of N bytes ordered as:
+ * <h2>Daisy-chain SPI protocol</h2>
+ * An M-byte command to N motors requires M separate CS transactions (one per byte
+ * position). Each transaction contains exactly N bytes:
  * {@code [motor[N-1].byte[k], ..., motor[1].byte[k], motor[0].byte[k]]}
- * i.e. motor[0] (closest to MOSI) receives the LAST byte of each group.
+ * Because motor[0] (closest to MOSI) receives the LAST byte of each N-byte group
+ * (standard shift-register behaviour), and motor[N-1] (closest to MISO) receives
+ * the first.
  *
  * <h2>SPI settings</h2>
  * Mode 3 (CPOL=1, CPHA=1), MSB first, up to 5 MHz (L6470 datasheet Table 15).
@@ -149,24 +151,23 @@ public class L6470MotorModule implements MotorControlModule {
     /**
      * Send independent multi-byte commands to all motors simultaneously.
      *
-     * <p>Daisy-chain byte layout for N motors and M bytes per command:<br>
-     * {@code buf[k*N + (N-1-i)] = cmds[i][k]}
-     * where {@code i} = motor index, {@code k} = byte position in command.
+     * <p>Each byte position of the M-byte command is sent as a dedicated CS
+     * transaction containing N bytes (one per motor). This is required by the
+     * L6470: a rising CS edge between byte groups is how the daisy chain
+     * routes each byte to the correct chip.
      *
      * @param cmds cmds[motorIndex][byteIndex] — all rows must have equal length
      */
     private void sendMultiByte(byte[][] cmds) {
         int bytesPerCmd = cmds[0].length;
-        byte[] buf = new byte[MOTOR_COUNT * bytesPerCmd];
 
         for (int k = 0; k < bytesPerCmd; k++) {
+            byte[] group = new byte[MOTOR_COUNT];
             for (int i = 0; i < MOTOR_COUNT; i++) {
-                // motor[0] (closest to MOSI) → last slot in each group
-                // motor[N-1] (closest to MISO) → first slot in each group
-                buf[k * MOTOR_COUNT + (MOTOR_COUNT - 1 - i)] = cmds[i][k];
+                group[MOTOR_COUNT - 1 - i] = cmds[i][k];
             }
+            spi.write(group);  // one CS pulse per byte position
         }
-        spi.write(buf);
     }
 
     /**

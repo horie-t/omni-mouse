@@ -15,16 +15,12 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class OmniMouseApplication {
 
-	// SPI bus 0, CE0 (/dev/spidev0.0)
 	private static final SpiBus SPI_BUS = SpiBus.BUS_0;
 	private static final SpiChipSelect SPI_CS = SpiChipSelect.CS_0;
-
-	// Motor coil voltage ratio: 0x40 = 25% of Vcc.
-	// Adjust if the motor doesn't move (too low) or overheats (too high).
 	private static final byte KVAL = 0x40;
 
-	// Target forward speed for verification test (m/s)
 	private static final double TEST_VX_M_PER_S = 0.05;
+	private static final long  ENCODER_POLL_MS   = 500;
 
 	public static void main(String[] args) {
 		SpringApplication.run(OmniMouseApplication.class, args);
@@ -37,17 +33,22 @@ public class OmniMouseApplication {
 			var motors = new L6470MotorModule(pi4j, SPI_BUS, SPI_CS, KVAL);
 			MotionControlModule motion = new OmniMotionModule(motors);
 
-			System.out.printf("Moving forward %.2f m/s%n", TEST_VX_M_PER_S);
-			motion.move(TEST_VX_M_PER_S, 0.0, 0.0);
-
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				System.out.println("Shutting down...");
 				motion.close();
 				pi4j.shutdown();
 			}));
 
-			// Keep the application running until Ctrl+C
-			Thread.currentThread().join();
+			System.out.printf("Moving forward %.2f m/s — printing encoder every %d ms%n",
+					TEST_VX_M_PER_S, ENCODER_POLL_MS);
+			motion.move(TEST_VX_M_PER_S, 0.0, 0.0);
+
+			while (!Thread.currentThread().isInterrupted()) {
+				double[] pos = motors.getAbsolutePositions();
+				System.out.printf("ABS_POS (rev): [0]=%+.3f  [1]=%+.3f  [2]=%+.3f%n",
+						pos[0], pos[1], pos[2]);
+				Thread.sleep(ENCODER_POLL_MS);
+			}
 		};
 	}
 }

@@ -31,11 +31,12 @@ import com.pi4j.io.spi.SpiBus;
  * <h2>Speed register</h2>
  * speed_reg = steps_per_sec × 250 ns × 2^28  (datasheet section 9.1.4)
  */
-public class L6470MotorModule implements MotorControlModule {
+public class L6470MotorModule implements MotorControlModule, MotorEncoderModule {
 
     public static final int MOTOR_COUNT = 3;
 
     // --- Register addresses ---
+    private static final byte REG_ABS_POS  = 0x01;  // 22-bit signed position in steps
     private static final byte REG_STEP_MODE = 0x16;
     private static final byte REG_KVAL_HOLD = 0x09;
     private static final byte REG_KVAL_RUN  = 0x0A;
@@ -43,12 +44,12 @@ public class L6470MotorModule implements MotorControlModule {
     private static final byte REG_KVAL_DEC  = 0x0C;
 
     // --- Commands ---
-    private static final byte CMD_NOP          = 0x00;
-    private static final byte CMD_RUN_FORWARD  = 0x51;       // Run forward
-    private static final byte CMD_RUN_REVERSE  = 0x50;       // Run reverse
-    private static final byte CMD_HARD_STOP    = (byte) 0xB8; // Stop with braking
-    private static final byte CMD_HARD_HIZ     = (byte) 0xA8; // Coils off
-    private static final byte CMD_RESET_DEVICE = (byte) 0xC0; // Soft reset
+    private static final byte CMD_RUN_FORWARD     = 0x51;       // Run forward
+    private static final byte CMD_RUN_REVERSE     = 0x50;       // Run reverse
+    private static final byte CMD_HARD_STOP       = (byte) 0xB8; // Stop with braking
+    private static final byte CMD_HARD_HIZ        = (byte) 0xA8; // Coils off
+    private static final byte CMD_RESET_DEVICE    = (byte) 0xC0; // Soft reset
+    private static final byte CMD_GET_PARAM_ABS_POS = (byte) (0x20 | 0x01); // GetParam ABS_POS
 
     // --- Step mode ---
     private static final byte STEP_MODE_FULL = 0x00;
@@ -130,6 +131,45 @@ public class L6470MotorModule implements MotorControlModule {
     }
 
     // -------------------------------------------------------------------------
+    // MotorEncoderModule interface
+    // -------------------------------------------------------------------------
+
+    /**
+     * Read the absolute position of all motors from the L6470 ABS_POS register.
+     *
+     * <p>ABS_POS is a 22-bit signed integer (steps from the power-on reference).
+     * After device reset, ABS_POS = 0. In full-step mode, each step increments
+     * or decrements the count by 1.
+     *
+     * <p>Daisy-chain read sequence (3 motors, 3 response bytes per motor):
+     * <ol>
+     *   <li>1 CS transaction: send GetParam command [0x21 × 3]</li>
+     *   <li>3 CS transactions: send dummy bytes, receive 1 byte per motor each time</li>
+     * </ol>
+     *
+     * @return absolute positions in revolutions; positive = forward direction
+     */
+    @Override
+    public double[] getAbsolutePositions() {
+        // Issue GetParam ABS_POS to all motors
+        sendUniform(CMD_GET_PARAM_ABS_POS, 1);
+
+        // Read 3-byte response from each motor (22-bit value, MSB first)
+        byte[][] raw = receiveMultiByte(3);
+
+        double[] revolutions = new double[MOTOR_COUNT];
+        for (int i = 0; i < MOTOR_COUNT; i++) {
+            int pos24 = ((raw[i][0] & 0xFF) << 16)
+                      | ((raw[i][1] & 0xFF) << 8)
+                      |  (raw[i][2] & 0xFF);
+            // Sign-extend from bit 21 to 32-bit int
+            int steps = (pos24 & 0x3F_FFFF) << 10 >> 10;
+            revolutions[i] = (double) steps / STEPS_PER_REV;
+        }
+        return revolutions;
+    }
+
+    // -------------------------------------------------------------------------
     // Daisy-chain SPI helpers
     // -------------------------------------------------------------------------
 
@@ -168,6 +208,31 @@ public class L6470MotorModule implements MotorControlModule {
             }
             spi.write(group);  // one CS pulse per byte position
         }
+    }
+
+    /**
+     * Receive response bytes from all motors after a read command.
+     *
+     * <p>Sends dummy bytes (0x00) in each CS transaction and captures MISO data.
+     * Byte ordering on MISO mirrors the send direction:
+     * {@code rx[MOTOR_COUNT-1-i]} is motor[i]'s byte, because motor[0]
+     * (closest to MOSI) must propagate through all chips before reaching MISO.
+     *
+     * @param bytesPerResponse bytes per motor in the response
+     * @return raw[motorIndex][byteIndex]
+     */
+    private byte[][] receiveMultiByte(int bytesPerResponse) {
+        byte[] txDummy = new byte[MOTOR_COUNT]; // zeros — ignored by chips in response phase
+        byte[] rxBuf   = new byte[MOTOR_COUNT];
+        byte[][] result = new byte[MOTOR_COUNT][bytesPerResponse];
+
+        for (int k = 0; k < bytesPerResponse; k++) {
+            spi.transfer(txDummy, rxBuf); // one CS pulse, full-duplex
+            for (int i = 0; i < MOTOR_COUNT; i++) {
+                result[i][k] = rxBuf[MOTOR_COUNT - 1 - i]; // motor[0] is last on MISO
+            }
+        }
+        return result;
     }
 
     /**

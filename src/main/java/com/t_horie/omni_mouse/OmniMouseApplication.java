@@ -6,6 +6,7 @@ import com.pi4j.io.spi.SpiChipSelect;
 import com.pi4j.io.spi.SpiBus;
 import com.t_horie.omni_mouse.control.motion.MotionControlModule;
 import com.t_horie.omni_mouse.control.motion.OmniMotionModule;
+import com.t_horie.omni_mouse.control.stabilization.HeadingStabilizer;
 import com.t_horie.omni_mouse.hardware.imu.Bno055IMUModule;
 import com.t_horie.omni_mouse.hardware.motor.L6470MotorModule;
 import com.t_horie.omni_mouse.sensing.odometry.FusedOdometryModule;
@@ -39,8 +40,8 @@ public class OmniMouseApplication {
 			var motors = new L6470MotorModule(pi4j, SPI_BUS, SPI_CS, KVAL);
 			var imu    = new Bno055IMUModule(pi4j, I2C_BUS);
 
-			// Control layer
-			MotionControlModule motion = new OmniMotionModule(motors);
+			// Control layer: OmniMotion wrapped by heading stabilizer
+			MotionControlModule motion = new HeadingStabilizer(new OmniMotionModule(motors), imu);
 
 			// Sensing layer — fused odometry
 			var odometry = new FusedOdometryModule(imu, motors);

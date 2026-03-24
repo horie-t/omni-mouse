@@ -29,6 +29,9 @@
   <line x1="80" y1="260" x2="105" y2="260" stroke="#bbbbbb" stroke-width="2" stroke-dasharray="4,4"/>
   <line x1="215" y1="260" x2="240" y2="260" stroke="#bbbbbb" stroke-width="2" stroke-dasharray="4,4"/>
 
+  <!-- Camera FOV (top-down view, ~90° forward) -->
+  <polygon points="160,208 96,290 224,290" fill="#ffdd00" fill-opacity="0.18" stroke="#ccaa00" stroke-width="1" stroke-dasharray="3,3"/>
+
   <!-- Robot (omni-wheel mouse, rotated 180°) -->
   <g transform="rotate(180, 160, 178)">
     <circle cx="160" cy="178" r="28" fill="#4a90d9" fill-opacity="0.15" stroke="#4a90d9" stroke-width="2"/>
@@ -42,6 +45,26 @@
     <!-- Center dot -->
     <circle cx="160" cy="178" r="4" fill="#4a90d9"/>
   </g>
+
+  <!-- Camera body (front edge of robot, top-down view) -->
+  <!-- Mounted above Raspberry Pi at front of vehicle (φ140mm body) -->
+  <rect x="152" y="202" width="16" height="9" rx="2" fill="#ff6600" stroke="#cc3300" stroke-width="1.5"/>
+  <circle cx="160" cy="206" r="3.5" fill="#cc3300"/>
+  <!-- Camera lens highlight -->
+  <circle cx="160" cy="206" r="1.5" fill="#ffffff" fill-opacity="0.6"/>
+
+  <!-- Camera label (leader line to right margin) -->
+  <line x1="176" y1="206" x2="244" y2="186" stroke="#cc3300" stroke-width="1" stroke-dasharray="2,2"/>
+  <text x="246" y="183" font-family="monospace" font-size="10" fill="#cc3300" font-weight="bold">カメラ</text>
+  <text x="246" y="194" font-family="monospace" font-size="8" fill="#cc3300">前方・上部搭載</text>
+
+  <!-- FOV label -->
+  <text x="175" y="278" font-family="monospace" font-size="8" fill="#aa8800">視野角 ~90°</text>
+
+  <!-- Layer annotations (right side) -->
+  <text x="246" y="148" font-family="monospace" font-size="8" fill="#aaaaaa">③ カメラ層</text>
+  <text x="246" y="163" font-family="monospace" font-size="8" fill="#aaaaaa">② RPi層</text>
+  <text x="246" y="178" font-family="monospace" font-size="8" fill="#4a90d9">① ホイール層</text>
 
   <!-- Direction arrow (pointing down = open side) -->
   <line x1="160" y1="215" x2="160" y2="248" stroke="#e06030" stroke-width="2.5" stroke-dasharray="5,3"/>

@@ -4,7 +4,8 @@ skinparam backgroundColor #FFFFFF
 skinparam componentStyle rectangle
 
 ' Components
-component "Camera" as CAM #FFE6E6
+component "Camera①\n(前方・先読み)" as CAM_FRONT #FFE6E6
+component "Camera②\n(見下ろし・近接)" as CAM_DOWN #FFE6E6
 component "IMU" as IMU #FFE6E6
 component "Motor Encoder" as ENC #FFE6E6
 
@@ -30,7 +31,8 @@ component "Reactive\nEvent Bus" as EVENT #E6E6E6
 component "Monitoring\nAPI" as API #E6E6E6
 
 ' Main data flow - Sensing
-CAM --> VISION : 画像データ\n(640x480)
+CAM_FRONT --> VISION : 前方画像\n(壁の先読み)
+CAM_DOWN --> VISION : 俯瞰画像\n(近接検知・全方向)
 IMU --> ODOM : 加速度・ジャイロ\n(100Hz)
 ENC --> ODOM : 回転数
 

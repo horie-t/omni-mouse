@@ -91,14 +91,22 @@ package "Sensing Layer" SENSING {
 }
 
 package "Hardware Layer" HARDWARE {
-  component [CameraModule] as CAM
+  component [FrontCameraModule] as CAM_FRONT
+  component [DownwardCameraModule] as CAM_DOWN
   component [IMUModule] as IMU
   component [MotorControlModule] as MOTOR
   component [HardwareAbstractionLayer] as HAL
 
-  note right of CAM
-    カメラ画像取得
+  note right of CAM_FRONT
+    カメラ①（前方・上部）
+    壁の先読み
     OpenCV連携
+  end note
+
+  note right of CAM_DOWN
+    カメラ②（見下ろし）
+    近接検知（全方向）
+    FOV 102°
   end note
 
   note right of IMU

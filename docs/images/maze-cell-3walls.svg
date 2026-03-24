@@ -1,82 +1,103 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 0 340 340" width="340" height="340">
 
   <!-- Background -->
-  <rect width="320" height="320" fill="#f8f8f8"/>
+  <rect x="-10" width="340" height="340" fill="#f8f8f8"/>
 
   <!-- Surrounding cells (faded) -->
-  <!-- Top cell -->
   <rect x="80" y="20" width="160" height="80" fill="#e0e0e0" stroke="#cccccc" stroke-width="1" stroke-dasharray="4,3"/>
-  <!-- Left cell -->
-  <rect x="0" y="100" width="80" height="160" fill="#e0e0e0" stroke="#cccccc" stroke-width="1" stroke-dasharray="4,3"/>
-  <!-- Right cell -->
+  <rect x="0"  y="100" width="80" height="160" fill="#e0e0e0" stroke="#cccccc" stroke-width="1" stroke-dasharray="4,3"/>
   <rect x="240" y="100" width="80" height="160" fill="#e0e0e0" stroke="#cccccc" stroke-width="1" stroke-dasharray="4,3"/>
-  <!-- Bottom cell -->
   <rect x="80" y="260" width="160" height="80" fill="#eeeeee" stroke="#cccccc" stroke-width="1" stroke-dasharray="4,3"/>
 
   <!-- Center cell (main) -->
   <rect x="80" y="100" width="160" height="160" fill="#ffffff"/>
 
-  <!-- Walls (3 sides: top, left, right) -->
-  <!-- Top wall -->
+  <!-- ===================== -->
+  <!-- Camera D: overhead downward-facing FOV (circular, covers all 4 sides) -->
+  <!-- 102° FOV (half=51°), h=80mm → r=80×tan51°=99mm → SVG: 99×(160/180)≈88px -->
+  <circle cx="160" cy="178" r="88"
+    fill="#22aa44" fill-opacity="0.07"
+    stroke="#22aa44" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <!-- Minimum coverage boundary (h=73mm, r=90mm → 80px) -->
+  <circle cx="160" cy="178" r="80"
+    fill="none"
+    stroke="#22aa44" stroke-width="0.8" stroke-dasharray="2,4" opacity="0.5"/>
+
+  <!-- Camera A: front-facing FOV cone (toward opening) -->
+  <polygon points="160,208 96,290 224,290"
+    fill="#ffdd00" fill-opacity="0.20"
+    stroke="#ccaa00" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Walls (3 sides: top, left, right) — drawn on top of FOV -->
   <line x1="80" y1="100" x2="240" y2="100" stroke="#222222" stroke-width="8" stroke-linecap="square"/>
-  <!-- Left wall -->
-  <line x1="80" y1="100" x2="80" y2="260" stroke="#222222" stroke-width="8" stroke-linecap="square"/>
-  <!-- Right wall -->
+  <line x1="80" y1="100" x2="80"  y2="260" stroke="#222222" stroke-width="8" stroke-linecap="square"/>
   <line x1="240" y1="100" x2="240" y2="260" stroke="#222222" stroke-width="8" stroke-linecap="square"/>
 
   <!-- Opening indicator (bottom - no wall) -->
-  <line x1="80" y1="260" x2="105" y2="260" stroke="#bbbbbb" stroke-width="2" stroke-dasharray="4,4"/>
+  <line x1="80"  y1="260" x2="105" y2="260" stroke="#bbbbbb" stroke-width="2" stroke-dasharray="4,4"/>
   <line x1="215" y1="260" x2="240" y2="260" stroke="#bbbbbb" stroke-width="2" stroke-dasharray="4,4"/>
-
-  <!-- Camera FOV (top-down view, ~90° forward) -->
-  <polygon points="160,208 96,290 224,290" fill="#ffdd00" fill-opacity="0.18" stroke="#ccaa00" stroke-width="1" stroke-dasharray="3,3"/>
 
   <!-- Robot (omni-wheel mouse, rotated 180°) -->
   <g transform="rotate(180, 160, 178)">
     <circle cx="160" cy="178" r="28" fill="#4a90d9" fill-opacity="0.15" stroke="#4a90d9" stroke-width="2"/>
-    <!-- Wheels (3 omni wheels, 120° apart) -->
-    <!-- Wheel 1 (top) -->
-    <rect x="150" y="142" width="20" height="8" rx="3" fill="#4a90d9" transform="rotate(0, 160, 146)"/>
-    <!-- Wheel 2 (bottom-right) -->
-    <rect x="150" y="142" width="20" height="8" rx="3" fill="#4a90d9" transform="rotate(120, 160, 178)"/>
-    <!-- Wheel 3 (bottom-left) -->
-    <rect x="150" y="142" width="20" height="8" rx="3" fill="#4a90d9" transform="rotate(240, 160, 178)"/>
-    <!-- Center dot -->
+    <rect x="150" y="142" width="20" height="8" rx="3" fill="#4a90d9" transform="rotate(0,   160, 146)"/>
+    <rect x="150" y="142" width="20" height="8" rx="3" fill="#4a90d9" transform="rotate(120,  160, 178)"/>
+    <rect x="150" y="142" width="20" height="8" rx="3" fill="#4a90d9" transform="rotate(240,  160, 178)"/>
     <circle cx="160" cy="178" r="4" fill="#4a90d9"/>
   </g>
 
-  <!-- Camera body (front edge of robot, top-down view) -->
-  <!-- Mounted above Raspberry Pi at front of vehicle (φ140mm body) -->
+  <!-- Camera A: front-facing body (front edge of robot) -->
   <rect x="152" y="202" width="16" height="9" rx="2" fill="#ff6600" stroke="#cc3300" stroke-width="1.5"/>
   <circle cx="160" cy="206" r="3.5" fill="#cc3300"/>
-  <!-- Camera lens highlight -->
   <circle cx="160" cy="206" r="1.5" fill="#ffffff" fill-opacity="0.6"/>
 
-  <!-- Camera label (leader line to right margin) -->
-  <line x1="176" y1="206" x2="244" y2="186" stroke="#cc3300" stroke-width="1" stroke-dasharray="2,2"/>
-  <text x="246" y="183" font-family="monospace" font-size="10" fill="#cc3300" font-weight="bold">カメラ</text>
-  <text x="246" y="194" font-family="monospace" font-size="8" fill="#cc3300">前方・上部搭載</text>
+  <!-- Camera D: overhead downward-facing body (center of robot, top view = concentric rings) -->
+  <circle cx="160" cy="178" r="7"  fill="none" stroke="#22aa44" stroke-width="1.5"/>
+  <circle cx="160" cy="178" r="3"  fill="#22aa44"/>
+  <!-- crosshair -->
+  <line x1="160" y1="169" x2="160" y2="187" stroke="#22aa44" stroke-width="1"/>
+  <line x1="151" y1="178" x2="169" y2="178" stroke="#22aa44" stroke-width="1"/>
 
-  <!-- FOV label -->
-  <text x="175" y="278" font-family="monospace" font-size="8" fill="#aa8800">視野角 ~90°</text>
-
-  <!-- Layer annotations (right side) -->
-  <text x="246" y="148" font-family="monospace" font-size="8" fill="#aaaaaa">③ カメラ層</text>
-  <text x="246" y="163" font-family="monospace" font-size="8" fill="#aaaaaa">② RPi層</text>
-  <text x="246" y="178" font-family="monospace" font-size="8" fill="#4a90d9">① ホイール層</text>
-
-  <!-- Direction arrow (pointing down = open side) -->
+  <!-- Direction arrow (pointing down = travel direction) -->
   <line x1="160" y1="215" x2="160" y2="248" stroke="#e06030" stroke-width="2.5" stroke-dasharray="5,3"/>
   <polygon points="160,254 155,244 165,244" fill="#e06030"/>
 
-  <!-- Labels -->
-  <text x="160" y="90" text-anchor="middle" font-family="monospace" font-size="11" fill="#888888">壁</text>
-  <text x="45" y="185" text-anchor="middle" font-family="monospace" font-size="11" fill="#888888">壁</text>
+  <!-- ===================== -->
+  <!-- Annotations -->
+
+  <!-- Wall labels -->
+  <text x="160" y="90"  text-anchor="middle" font-family="monospace" font-size="11" fill="#888888">壁</text>
+  <text x="45"  y="185" text-anchor="middle" font-family="monospace" font-size="11" fill="#888888">壁</text>
   <text x="275" y="185" text-anchor="middle" font-family="monospace" font-size="11" fill="#888888">壁</text>
   <text x="160" y="292" text-anchor="middle" font-family="monospace" font-size="11" fill="#e06030">通路</text>
 
-  <!-- Cell coordinate hint -->
-  <text x="160" y="316" text-anchor="middle" font-family="monospace" font-size="9" fill="#aaaaaa">迷路の1マス (3方向に壁)</text>
+  <!-- Camera A label -->
+  <line x1="168" y1="205" x2="244" y2="196" stroke="#cc3300" stroke-width="1" stroke-dasharray="2,2"/>
+  <text x="246" y="193" font-family="monospace" font-size="9" fill="#cc3300" font-weight="bold">カメラ①</text>
+  <text x="246" y="204" font-family="monospace" font-size="8" fill="#cc3300">前方・上部</text>
+  <text x="246" y="214" font-family="monospace" font-size="7" fill="#888888">壁の先読み</text>
+
+  <!-- Camera D label -->
+  <line x1="167" y1="174" x2="244" y2="158" stroke="#22aa44" stroke-width="1" stroke-dasharray="2,2"/>
+  <text x="246" y="155" font-family="monospace" font-size="9" fill="#22aa44" font-weight="bold">カメラ②</text>
+  <text x="246" y="166" font-family="monospace" font-size="8" fill="#22aa44">上方・見下ろし</text>
+  <text x="246" y="176" font-family="monospace" font-size="7" fill="#888888">近接検知(全方向)</text>
+  <text x="246" y="186" font-family="monospace" font-size="7" fill="#22aa44">FOV102° h≥73mm</text>
+
+  <!-- FOV labels -->
+  <text x="100" y="131" text-anchor="middle" font-family="monospace" font-size="7" fill="#22aa44">② 視野(102°,h=80mm)</text>
+  <text x="100" y="140" text-anchor="middle" font-family="monospace" font-size="6" fill="#22aa44" opacity="0.7">  (内円: h=73mm最低高)</text>
+  <text x="178" y="278" font-family="monospace" font-size="7" fill="#aa8800">① 視野 ~90°</text>
+
+  <!-- Legend (bottom left) -->
+  <rect x="-8" y="296" width="155" height="38" rx="3" fill="#ffffff" stroke="#cccccc" stroke-width="1"/>
+  <rect x="0"  y="302" width="10" height="7" rx="1" fill="#ffdd00" stroke="#ccaa00" stroke-width="1"/>
+  <text x="14" y="310" font-family="monospace" font-size="8" fill="#555555">①前方FOV (壁の先読み)</text>
+  <circle cx="5" cy="320" r="5" fill="none" stroke="#22aa44" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="14" y="323" font-family="monospace" font-size="8" fill="#555555">②俯瞰FOV (全方向近接)</text>
+
+  <!-- Footer -->
+  <text x="160" y="337" text-anchor="middle" font-family="monospace" font-size="9" fill="#aaaaaa">迷路の1マス — カメラ2台構成案</text>
 
 </svg>

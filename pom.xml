@@ -29,6 +29,9 @@
 	<properties>
 		<java.version>25</java.version>
 		<pi4j.version>4.0.0</pi4j.version>
+		<javacv.version>1.5.13</javacv.version>
+		<opencv.version>4.13.0</opencv.version>
+		<ffmpeg.version>8.0.1</ffmpeg.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -48,6 +51,23 @@
 			<groupId>com.pi4j</groupId>
 			<artifactId>pi4j-plugin-ffm</artifactId>
 			<version>${pi4j.version}</version>
+		</dependency>
+
+		<!-- JavaCV / OpenCV -->
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>javacv</artifactId>
+			<version>${javacv.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>opencv-platform</artifactId>
+			<version>${opencv.version}-${javacv.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>ffmpeg-platform</artifactId>
+			<version>${ffmpeg.version}-${javacv.version}</version>
 		</dependency>
 
 		<dependency>
@@ -73,6 +93,15 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<!-- PropertiesLauncher を使うと -Dloader.main で起動クラスを切り替えられる -->
+					<layout>ZIP</layout>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.2.0</version>
 			</plugin>
 		</plugins>
 	</build>

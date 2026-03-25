@@ -17,8 +17,12 @@ Raspberry Pi 5とオムニホイールを組み合わせてマイクロマウス
 
 ## ソフトウェア構成
 
-- Raspberry Pi OS
+- Raspberry Pi OS (bookworm)
 - Java 25
 - Spring Boot / WebFlux
 - Pi4J
 - JavaCV
+
+## Raspberry Pi OSのセットアップ
+
+[こちら](./docs/setup.md)を参照してください。

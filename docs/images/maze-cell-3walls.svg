@@ -14,17 +14,17 @@
   <rect x="80" y="100" width="160" height="160" fill="#ffffff"/>
 
   <!-- ===================== -->
-  <!-- Camera D: overhead downward-facing FOV (circular, covers all 4 sides) -->
-  <!-- 102° FOV (half=51°), h=80mm → r=80×tan51°=99mm → SVG: 99×(160/180)≈88px -->
+  <!-- Camera②: downward-facing FOV (circular) -->
+  <!-- 102° FOV (half=51°), h=80mm → r≈88px in SVG -->
   <circle cx="160" cy="178" r="88"
     fill="#22aa44" fill-opacity="0.07"
     stroke="#22aa44" stroke-width="1.5" stroke-dasharray="5,3"/>
-  <!-- Minimum coverage boundary (h=73mm, r=90mm → 80px) -->
+  <!-- Minimum coverage boundary (h=73mm) -->
   <circle cx="160" cy="178" r="80"
     fill="none"
     stroke="#22aa44" stroke-width="0.8" stroke-dasharray="2,4" opacity="0.5"/>
 
-  <!-- Camera A: front-facing FOV cone (toward opening) -->
+  <!-- Camera①: front-facing FOV cone (toward opening) -->
   <polygon points="160,208 96,290 224,290"
     fill="#ffdd00" fill-opacity="0.20"
     stroke="#ccaa00" stroke-width="1" stroke-dasharray="3,3"/>
@@ -38,7 +38,12 @@
   <line x1="80"  y1="260" x2="105" y2="260" stroke="#bbbbbb" stroke-width="2" stroke-dasharray="4,4"/>
   <line x1="215" y1="260" x2="240" y2="260" stroke="#bbbbbb" stroke-width="2" stroke-dasharray="4,4"/>
 
-  <!-- Robot (omni-wheel mouse, rotated 180°) -->
+  <!-- ===================== -->
+  <!-- Robot body + wheels (rotated 180° so W0/front faces the opening = downward in SVG) -->
+  <!-- Wheel positions after rotation:
+       W0(φ=0°)  : SVG (160, 210)  — front, downward
+       W1(φ=120°): SVG (132, 162)  — left-rear, upper-left
+       W2(φ=240°): SVG (188, 162)  — right-rear, upper-right -->
   <g transform="rotate(180, 160, 178)">
     <circle cx="160" cy="178" r="28" fill="#4a90d9" fill-opacity="0.15" stroke="#4a90d9" stroke-width="2"/>
     <rect x="150" y="142" width="20" height="8" rx="3" fill="#4a90d9" transform="rotate(0,   160, 146)"/>
@@ -47,21 +52,48 @@
     <circle cx="160" cy="178" r="4" fill="#4a90d9"/>
   </g>
 
-  <!-- Camera A: front-facing body (front edge of robot) -->
+  <!-- Camera①: front-facing body (front edge of robot) -->
   <rect x="152" y="202" width="16" height="9" rx="2" fill="#ff6600" stroke="#cc3300" stroke-width="1.5"/>
   <circle cx="160" cy="206" r="3.5" fill="#cc3300"/>
   <circle cx="160" cy="206" r="1.5" fill="#ffffff" fill-opacity="0.6"/>
 
-  <!-- Camera D: overhead downward-facing body (center of robot, top view = concentric rings) -->
+  <!-- Camera②: downward-facing body (crosshair) -->
   <circle cx="160" cy="178" r="7"  fill="none" stroke="#22aa44" stroke-width="1.5"/>
   <circle cx="160" cy="178" r="3"  fill="#22aa44"/>
-  <!-- crosshair -->
   <line x1="160" y1="169" x2="160" y2="187" stroke="#22aa44" stroke-width="1"/>
   <line x1="151" y1="178" x2="169" y2="178" stroke="#22aa44" stroke-width="1"/>
 
-  <!-- Direction arrow (pointing down = travel direction) -->
+  <!-- Camera②: image-top indicator (image top = robot front = downward in SVG) -->
+  <line x1="160" y1="188" x2="160" y2="196" stroke="#22aa44" stroke-width="1" stroke-dasharray="2,1.5"/>
+  <polygon points="160,199 157,194 163,194" fill="#22aa44" opacity="0.8"/>
+  <text x="163" y="199" font-family="monospace" font-size="6" fill="#22aa44">画像上</text>
+
+  <!-- Direction arrow (travel direction = robot +x = front) -->
   <line x1="160" y1="215" x2="160" y2="248" stroke="#e06030" stroke-width="2.5" stroke-dasharray="5,3"/>
   <polygon points="160,254 155,244 165,244" fill="#e06030"/>
+
+  <!-- ===================== -->
+  <!-- Wheel labels (φ = CCW angle from robot +x/front) -->
+  <!-- W0(φ=0°) front — label to the right of direction arrow -->
+  <text x="173" y="213" font-family="monospace" font-size="7" fill="#4a90d9" font-weight="bold">W0(0°)</text>
+  <!-- W1(φ=120°) left-rear — label between wheel and left wall -->
+  <text x="127" y="158" text-anchor="end" font-family="monospace" font-size="7" fill="#4a90d9" font-weight="bold">W1(120°)</text>
+  <!-- W2(φ=240°) right-rear — label between wheel and right wall -->
+  <text x="193" y="158" font-family="monospace" font-size="7" fill="#4a90d9" font-weight="bold">W2(240°)</text>
+
+  <!-- ===================== -->
+  <!-- Coordinate axes (+x = front = ↓ in SVG, +y = left = ← in SVG) -->
+  <circle cx="217" cy="116" r="2" fill="#555555"/>
+  <!-- +x axis (downward = robot front) -->
+  <line x1="217" y1="116" x2="217" y2="133" stroke="#e06030" stroke-width="1.5"/>
+  <polygon points="217,137 214,130 220,130" fill="#e06030"/>
+  <text x="221" y="132" font-family="monospace" font-size="7" fill="#e06030" font-weight="bold">+x</text>
+  <text x="221" y="140" font-family="monospace" font-size="6" fill="#e06030">前方</text>
+  <!-- +y axis (leftward = robot left) -->
+  <line x1="217" y1="116" x2="199" y2="116" stroke="#2244aa" stroke-width="1.5"/>
+  <polygon points="195,116 202,113 202,119" fill="#2244aa"/>
+  <text x="193" y="113" text-anchor="end" font-family="monospace" font-size="7" fill="#2244aa" font-weight="bold">+y</text>
+  <text x="193" y="121" text-anchor="end" font-family="monospace" font-size="6" fill="#2244aa">左</text>
 
   <!-- ===================== -->
   <!-- Annotations -->
@@ -72,25 +104,26 @@
   <text x="275" y="185" text-anchor="middle" font-family="monospace" font-size="11" fill="#888888">壁</text>
   <text x="160" y="292" text-anchor="middle" font-family="monospace" font-size="11" fill="#e06030">通路</text>
 
-  <!-- Camera A label -->
-  <line x1="168" y1="205" x2="244" y2="196" stroke="#cc3300" stroke-width="1" stroke-dasharray="2,2"/>
-  <text x="246" y="193" font-family="monospace" font-size="9" fill="#cc3300" font-weight="bold">カメラ①</text>
-  <text x="246" y="204" font-family="monospace" font-size="8" fill="#cc3300">前方・上部</text>
-  <text x="246" y="214" font-family="monospace" font-size="7" fill="#888888">壁の先読み</text>
-
-  <!-- Camera D label -->
+  <!-- Camera② label (with image orientation) -->
   <line x1="167" y1="174" x2="244" y2="158" stroke="#22aa44" stroke-width="1" stroke-dasharray="2,2"/>
   <text x="246" y="155" font-family="monospace" font-size="9" fill="#22aa44" font-weight="bold">カメラ②</text>
-  <text x="246" y="166" font-family="monospace" font-size="8" fill="#22aa44">上方・見下ろし</text>
-  <text x="246" y="176" font-family="monospace" font-size="7" fill="#888888">近接検知(全方向)</text>
-  <text x="246" y="186" font-family="monospace" font-size="7" fill="#22aa44">FOV102° h≥73mm</text>
+  <text x="246" y="165" font-family="monospace" font-size="8" fill="#22aa44">見下ろし</text>
+  <text x="246" y="175" font-family="monospace" font-size="7" fill="#888888">近接検知(全方向)</text>
+  <text x="246" y="185" font-family="monospace" font-size="7" fill="#22aa44">FOV102° h≥73mm</text>
+  <text x="246" y="195" font-family="monospace" font-size="7" fill="#22aa44">画像上=+x(前方)</text>
+
+  <!-- Camera① label -->
+  <line x1="168" y1="205" x2="244" y2="211" stroke="#cc3300" stroke-width="1" stroke-dasharray="2,2"/>
+  <text x="246" y="208" font-family="monospace" font-size="9" fill="#cc3300" font-weight="bold">カメラ①</text>
+  <text x="246" y="219" font-family="monospace" font-size="8" fill="#cc3300">前方・上部</text>
+  <text x="246" y="229" font-family="monospace" font-size="7" fill="#888888">壁の先読み</text>
 
   <!-- FOV labels -->
   <text x="100" y="131" text-anchor="middle" font-family="monospace" font-size="7" fill="#22aa44">② 視野(102°,h=80mm)</text>
   <text x="100" y="140" text-anchor="middle" font-family="monospace" font-size="6" fill="#22aa44" opacity="0.7">  (内円: h=73mm最低高)</text>
   <text x="178" y="278" font-family="monospace" font-size="7" fill="#aa8800">① 視野 ~90°</text>
 
-  <!-- Legend (bottom left) -->
+  <!-- Legend -->
   <rect x="-8" y="296" width="155" height="38" rx="3" fill="#ffffff" stroke="#cccccc" stroke-width="1"/>
   <rect x="0"  y="302" width="10" height="7" rx="1" fill="#ffdd00" stroke="#ccaa00" stroke-width="1"/>
   <text x="14" y="310" font-family="monospace" font-size="8" fill="#555555">①前方FOV (壁の先読み)</text>

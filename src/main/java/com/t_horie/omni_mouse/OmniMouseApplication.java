@@ -9,28 +9,32 @@ import com.t_horie.omni_mouse.control.motion.OmniMotionModule;
 import com.t_horie.omni_mouse.control.path.PIDPathFollower;
 import com.t_horie.omni_mouse.control.path.PathFollowingModule;
 import com.t_horie.omni_mouse.control.stabilization.HeadingStabilizer;
+import com.t_horie.omni_mouse.hardware.camera.RpicamCameraModule;
 import com.t_horie.omni_mouse.hardware.imu.Bno055IMUModule;
 import com.t_horie.omni_mouse.hardware.motor.L6470MotorModule;
+import com.t_horie.omni_mouse.planning.exploration.FloodFillExplorationModule;
+import com.t_horie.omni_mouse.planning.mapping.CellCoord;
+import com.t_horie.omni_mouse.planning.mapping.WallMappingModule;
 import com.t_horie.omni_mouse.sensing.odometry.FusedOdometryModule;
-import com.t_horie.omni_mouse.sensing.odometry.Pose;
-import com.t_horie.omni_mouse.sensing.odometry.Velocity;
+import com.t_horie.omni_mouse.sensing.vision.DownwardVisionModule;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import java.util.List;
+import java.util.Set;
 
 @SpringBootApplication
 public class OmniMouseApplication {
 
-	private static final SpiBus        SPI_BUS = SpiBus.BUS_0;
-	private static final SpiChipSelect SPI_CS  = SpiChipSelect.CS_0;
-	private static final byte          KVAL    = 0x40;
-	private static final int           I2C_BUS = 1;
+	private static final SpiBus        SPI_BUS    = SpiBus.BUS_0;
+	private static final SpiChipSelect SPI_CS     = SpiChipSelect.CS_0;
+	private static final byte          KVAL       = 0x40;
+	private static final int           I2C_BUS    = 1;
+	private static final int           CAMERA_IDX = 0;
 
-	// Control loop rate
-	private static final long CONTROL_PERIOD_MS = 10; // 100 Hz
+	// 4x4 迷路のゴールセル（右上隅）
+	private static final CellCoord GOAL = new CellCoord(3, 3);
 
 	public static void main(String[] args) {
 		SpringApplication.run(OmniMouseApplication.class, args);
@@ -46,14 +50,17 @@ public class OmniMouseApplication {
 			var imu    = new Bno055IMUModule(pi4j, I2C_BUS);
 
 			// ── Control layer ───────────────────────────────────────────────
-			// OmniMotion wrapped by heading stabilizer (transparent to callers)
 			MotionControlModule motion = new HeadingStabilizer(new OmniMotionModule(motors), imu);
-
-			// Path follower (pure PD, no IMU dependency)
 			PathFollowingModule follower = new PIDPathFollower();
 
 			// ── Sensing layer ───────────────────────────────────────────────
 			var odometry = new FusedOdometryModule(imu, motors);
+
+			// ── Vision / Mapping / Exploration layer ────────────────────────
+			var camera    = new RpicamCameraModule(CAMERA_IDX, 640, 480, 30);
+			var vision    = new DownwardVisionModule();
+			var mapping   = new WallMappingModule();
+			var exploration = new FloodFillExplorationModule(Set.of(GOAL));
 
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				System.out.println("Shutting down...");
@@ -62,34 +69,18 @@ public class OmniMouseApplication {
 				pi4j.shutdown();
 			}));
 
-			// Start odometry stream at 100 Hz (updates currentOdometry internally)
+			// オドメトリストリーム開始（100 Hz、内部状態を更新）
 			odometry.start().subscribe(
 					odom -> {},
 					err  -> System.err.println("Odometry error: " + err.getMessage())
 			);
 
-			// ── Test: navigate a square (0.3 m side, back to origin) ────────
-			List<Pose> square = List.of(
-					new Pose(0.30,  0.00, 0.00),          // forward 30 cm
-					new Pose(0.30,  0.30, Math.PI / 2),   // left 30 cm, face left
-					new Pose(0.00,  0.30, Math.PI),       // back 30 cm, face backward
-					new Pose(0.00,  0.00, 0.00)           // return to origin, face forward
-			);
+			// ── 4x4 迷路 探索走行 ───────────────────────────────────────────
+			System.out.printf("Starting maze exploration (goal: %s)%n", GOAL);
+			var explorer = new MazeExplorer(camera, vision, mapping, exploration, follower, motion, odometry);
+			explorer.run();
 
-			System.out.println("Starting square path test (0.3 m side)");
-			follower.setPath(square);
-
-			// 100 Hz closed-loop control
-			while (!follower.isComplete() && !Thread.currentThread().isInterrupted()) {
-				Pose     pose = odometry.getCurrentOdometry().pose();
-				Velocity cmd  = follower.computeVelocity(pose);
-				motion.move(cmd.vx(), cmd.vy(), cmd.omega());
-				System.out.printf("  %s  →  %s%n", pose, cmd);
-				Thread.sleep(CONTROL_PERIOD_MS);
-			}
-
-			System.out.println("Path complete — stopping");
-			motion.stop();
+			System.out.println("Exploration complete.");
 			Thread.sleep(500);
 			motion.freeRun();
 		};

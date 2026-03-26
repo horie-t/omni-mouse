@@ -10,9 +10,9 @@
 	</parent>
 	<groupId>com.t-horie.omni-mouse</groupId>
 	<artifactId>omni-mouse</artifactId>
-	<version>0.2.3</version>
-	<name/>
-	<description/>
+	<version>0.2.4-SNAPSHOT</version>
+	<name>OmniMouse</name>
+	<description>OmniMouse is a micro mouse that runs on Raspberry Pi 4. This project uses Java and Pi4J to control a micro mouse on Raspberry Pi 4.</description>
 	<url/>
 	<licenses>
 		<license/>
